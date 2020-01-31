@@ -1,0 +1,22 @@
+{
+  "name": "game",
+  "version": "0.0.1",
+  "description": "A Typescript template for HTML5 games using the Phaser game engine. The files included are a mixture of of the basic template provided in the [phaser-ce](https://github.com/photonstorm/phaser-ce) repository and the [Advanced Phaser and Typescript Projects](http://www.photonstorm.com/phaser/advanced-phaser-and-typescript-projects) tutorial provided on the Photon Storm blog.",
+  "bin": {
+    "project": "game.js"
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "build": "tsc --project .",
+    "serve": "http-server",
+    "start": "tsc-watch --onSuccess \"http-server\""
+  },
+  "devDependencies": {
+    "http-server": "^0.11.1",
+    "tsc-watch": "^1.0.31",
+    "typescript": "^3.2.4"
+  },
+  "dependencies": {}
+}

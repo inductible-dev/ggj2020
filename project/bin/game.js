@@ -44,6 +44,11 @@ var Project;
         }
         PairsActivityScene.prototype.create = function () {
             this.container = this.add.container(0, 0);
+            this.sceneChangeButton = new Phaser.GameObjects.Sprite(this, 0, 0, 'ui', 'scene_up');
+            this.sceneChangeButton.setPosition(this.game.config.width * 0.5, this.sceneChangeButton.height * 0.5);
+            this.sceneChangeButton.setInteractive();
+            this.sceneChangeButton.on('pointerup', this.changeActivity, this);
+            this.container.add(this.sceneChangeButton);
             var x = 100;
             var y = 100;
             for (var i = 0; i < 6; i++) {
@@ -54,25 +59,42 @@ var Project;
                 x += 4;
                 y += 4;
             }
-            this.input.on('pointerdown', function () {
-                this.input.stopPropagation();
-                this.scene.transition({
-                    target: 'ShopActivityScene',
-                    duration: 750,
-                    onUpdate: this.transitionOut
-                });
-            }, this);
+            this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
+                gameObject.x = dragX;
+                gameObject.y = dragY;
+            });
+            this.events.on(Phaser.Scenes.Events.TRANSITION_OUT, this.onTransitionOut, this);
+            this.events.on(Phaser.Scenes.Events.TRANSITION_START, this.onTransitionStart, this);
+            this.events.on(Phaser.Scenes.Events.TRANSITION_COMPLETE, this.onTransitionComplete, this);
         };
         PairsActivityScene.prototype.preload = function () {
             this.load.atlas('cards', 'assets/atlas/cards.png', 'assets/atlas/cards.json');
+            this.load.atlas('ui', 'assets/atlas/ui.png', 'assets/atlas/ui.json');
         };
-        PairsActivityScene.prototype.transitionOut = function (progress) {
+        PairsActivityScene.prototype.updateTransitionOut = function (progress) {
             var sceneB = this.scene.get('ShopActivityScene');
-            this.container.y = (600 * progress);
+            this.container.y = (this.game.config.height * progress);
             sceneB.updateNeighbourPosition(this.container.y);
         };
+        PairsActivityScene.prototype.changeActivity = function () {
+            this.scene.transition({
+                target: 'ShopActivityScene',
+                duration: 500,
+                onUpdate: this.updateTransitionOut,
+                sleep: true
+            });
+        };
+        PairsActivityScene.prototype.onTransitionOut = function () {
+            this.sceneChangeButton.visible = false;
+        };
+        PairsActivityScene.prototype.onTransitionStart = function () {
+            this.sceneChangeButton.visible = false;
+        };
+        PairsActivityScene.prototype.onTransitionComplete = function () {
+            this.sceneChangeButton.visible = true;
+        };
         PairsActivityScene.prototype.updateNeighbourPosition = function (y) {
-            this.container.y = y + (+this.game.config.height);
+            this.container.y = y + this.game.config.height;
         };
         return PairsActivityScene;
     }(Phaser.Scene));
@@ -87,6 +109,11 @@ var Project;
         }
         ShopActivityScene.prototype.create = function () {
             this.container = this.add.container(0, 0);
+            this.sceneChangeButton = new Phaser.GameObjects.Sprite(this, 0, 0, 'ui', 'scene_down');
+            this.sceneChangeButton.setPosition(this.game.config.width * 0.5, this.game.config.height - this.sceneChangeButton.height * 0.5);
+            this.sceneChangeButton.setInteractive();
+            this.sceneChangeButton.on('pointerup', this.changeActivity, this);
+            this.container.add(this.sceneChangeButton);
             var x = 100;
             var y = 100;
             for (var i = 0; i < 6; i++) {
@@ -97,25 +124,42 @@ var Project;
                 x += 4;
                 y += 4;
             }
-            this.input.on('pointerdown', function () {
-                this.input.stopPropagation();
-                this.scene.transition({
-                    target: 'PairsActivityScene',
-                    duration: 750,
-                    onUpdate: this.transitionOut
-                });
-            }, this);
+            this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
+                gameObject.x = dragX;
+                gameObject.y = dragY;
+            });
+            this.events.on(Phaser.Scenes.Events.TRANSITION_OUT, this.onTransitionOut, this);
+            this.events.on(Phaser.Scenes.Events.TRANSITION_COMPLETE, this.onTransitionComplete, this);
+            this.events.on(Phaser.Scenes.Events.TRANSITION_START, this.onTransitionStart, this);
         };
         ShopActivityScene.prototype.preload = function () {
             this.load.atlas('cards', 'assets/atlas/cards.png', 'assets/atlas/cards.json');
+            this.load.atlas('ui', 'assets/atlas/ui.png', 'assets/atlas/ui.json');
         };
-        ShopActivityScene.prototype.transitionOut = function (progress) {
+        ShopActivityScene.prototype.updateTransitionOut = function (progress) {
             var sceneB = this.scene.get('PairsActivityScene');
-            this.container.y = (-600 * progress);
+            this.container.y = (-this.game.config.height * progress);
             sceneB.updateNeighbourPosition(this.container.y);
         };
+        ShopActivityScene.prototype.changeActivity = function () {
+            this.scene.transition({
+                target: 'PairsActivityScene',
+                duration: 500,
+                onUpdate: this.updateTransitionOut,
+                sleep: true
+            });
+        };
+        ShopActivityScene.prototype.onTransitionOut = function () {
+            this.sceneChangeButton.visible = false;
+        };
+        ShopActivityScene.prototype.onTransitionStart = function () {
+            this.sceneChangeButton.visible = false;
+        };
+        ShopActivityScene.prototype.onTransitionComplete = function () {
+            this.sceneChangeButton.visible = true;
+        };
         ShopActivityScene.prototype.updateNeighbourPosition = function (y) {
-            this.container.y = y - (+this.game.config.height);
+            this.container.y = y - this.game.config.height;
         };
         return ShopActivityScene;
     }(Phaser.Scene));

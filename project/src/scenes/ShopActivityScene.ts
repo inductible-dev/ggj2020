@@ -8,6 +8,9 @@ namespace Project {
 
         patronManager:PatronManager;
 
+        patronsExpired = 0;
+        patronsSatisfied = 0;
+
         constructor ()
         {
             super({ key: 'ShopActivityScene', active: false });
@@ -25,18 +28,35 @@ namespace Project {
             this.container.add(this.sceneChangeButton);
 
             // patron manager
-            this.patronManager = new PatronManager( this, 0, 0 );
+            this.patronManager = new PatronManager( this, (+this.game.config.width/2), (+this.game.config.height/2)-150 );
+            this.patronManager.on(PATRON_MANAGER_EVENTS.PATRON_EXPIRED,this.onPatronExpired,this);
             this.container.add(this.patronManager);
+            this.patronManager.start();
+            this.patronManager.addPatron();
 
-            this.patronManager.addPatron();
-            this.patronManager.addPatron();
-            this.patronManager.addPatron();
+            this.cardCollection.enableDragDrop();
             
             this.events.on(Phaser.Scenes.Events.TRANSITION_OUT,this.onTransitionOut,this);
             this.events.on(Phaser.Scenes.Events.TRANSITION_COMPLETE,this.onTransitionComplete,this);
             this.events.on(Phaser.Scenes.Events.TRANSITION_START,this.onTransitionStart,this);
 
         }        
+
+        update()
+        {
+            this.patronManager.update();
+        }
+
+        checkEndGame()
+        {
+            if( this.patronsExpired >= 3 ) this.gameOver();
+        }
+
+        gameOver()
+        {
+            this.patronManager.stop();
+            alert('GAME OVER!');
+        }
 
         updateTransitionOut(progress)
         {
@@ -74,6 +94,21 @@ namespace Project {
         {
             this.cardCollection.enableDragDrop();
             this.sceneChangeButton.visible = true;
+        }
+
+        onPatronExpired()
+        {
+            this.patronsExpired++;
+
+            console.log('patron expired!',this.patronsExpired);
+
+            this.checkEndGame();
+        }
+        onPatronSatisfied()
+        {
+            this.patronsSatisfied++;
+
+            console.log('patron satisfied!',this.patronsSatisfied);
         }
 
         public updateNeighbourPosition(y:number)

@@ -5,9 +5,15 @@ namespace Project {
         stacksByType = {};
         nStacks:number = 0;
 
-        constructor(scene: Phaser.Scene, x?: number, y?: number)
+        tempMatrix = new Phaser.GameObjects.Components.TransformMatrix();
+        tempParentMatrix = new Phaser.GameObjects.Components.TransformMatrix();
+        delta = new Phaser.Geom.Point();
+
+        dragDropEnabled:boolean = false;
+
+        constructor(scene: Phaser.Scene)
         {
-            super(scene,x,y);
+            super(scene,0,0);
         }
 
         updateLayout()
@@ -26,18 +32,15 @@ namespace Project {
                         child.updateAnchor();
                     });
 
-                    stack.x = (nWidth*i);
-                    stack.y = 0;
+                    stack.x = (+this.scene.game.config.width/2) - (nWidth*0.5*(this.nStacks-1)) + (nWidth*i);
+                    stack.y = (+this.scene.game.config.height) - 30;
 
                     i++ ;
                 }
             }
-
-            this.x = (+this.scene.game.config.width/2) - (nWidth*0.5*(this.nStacks-1));
-            this.y = (+this.scene.game.config.height) - 30;
         }
 
-        collect(type:CARD_TYPES)
+        collectCard(type:CARD_TYPES)
         {
             var card = new DragCard( this.scene, 0, 0, type );
             card.on(FLIP_CARD_EVENTS.HOVER_OVER,this.onCardHoverOver,this);
@@ -55,14 +58,37 @@ namespace Project {
 
             this.updateLayout();
         }
+        removeCard(card:DragCard)
+        {
+            card.destroy();
+
+            // curate the dictionary so that empty stacks are deleted
+            for( var key in this.stacksByType ) 
+            {
+                if( this.stacksByType.hasOwnProperty(key) )
+                {
+                    var stack = this.stacksByType[key];
+                    if( !stack || stack.list.length == 0 ) 
+                    {
+                        this.stacksByType[key].destroy();
+                        delete this.stacksByType[key];
+                        this.nStacks--;
+                    }
+                }
+            }
+
+            this.updateLayout();
+        }
 
         disableDragDrop()
         {
+            if( !this.dragDropEnabled ) return ;
             for( var key in this.stacksByType )
             {
                 if( this.stacksByType.hasOwnProperty(key) )
                 {
                     var stack = this.stacksByType[key];
+                    if( ! stack ) continue;
                     stack.iterate((dragCard:DragCard)=>{
                         dragCard.disable();
                         this.scene.input.setDraggable(dragCard,false);
@@ -72,14 +98,17 @@ namespace Project {
             this.scene.input.off('dragstart', this.onDragStart, this);
             this.scene.input.off('drag', this.onDrag, this);
             this.scene.input.off('dragend', this.onDragEnd, this);
+            this.dragDropEnabled = false;
         }
         enableDragDrop()
         {
+            if( this.dragDropEnabled ) return ;
             for( var key in this.stacksByType )
             {
                 if( this.stacksByType.hasOwnProperty(key) )
                 {
                     var stack = this.stacksByType[key];
+                    if( stack.list.length == 0 ) continue;
                     var topCard:DragCard = stack.getAt(stack.list.length-1);
                     topCard.enable();
                     this.scene.input.setDraggable(topCard,true);
@@ -88,9 +117,10 @@ namespace Project {
             this.scene.input.on('dragstart', this.onDragStart, this);
             this.scene.input.on('drag', this.onDrag, this);
             this.scene.input.on('dragend', this.onDragEnd, this);
+            this.dragDropEnabled = true;
         }
 
-        checkDrop(card:DragCard)
+        checkDrop(card:DragCard,wx:number,wy:number):boolean
         {
             var shopScene:ShopActivityScene = <ShopActivityScene>this.scene.scene.get('ShopActivityScene');
             
@@ -98,9 +128,32 @@ namespace Project {
             for( var i=0; i<patronManager.patrons.length; i++ )
             {
                 var patron:Patron = patronManager.patrons[i];
-                console.log('checkdrop',patron,card);
+                
+                patron.getWorldTransformMatrix( this.tempMatrix, this.tempParentMatrix );
+                var d:any = this.tempMatrix.decomposeMatrix();
+
+                this.delta.setTo(d.translateX-wx,d.translateY-wy);
+                var len = Phaser.Geom.Point.GetMagnitude(this.delta);
+                
+                if( len<=Patron.dropZoneRadius )
+                {
+                    console.log('---');
+                    console.log('dropping card',card.type,'patron needs card?',patron.needsCardOfType(card.type));
+                    console.log('patronWorldPos',d.translateX,d.translateY);
+                    console.log('cardWorldPos',wx,wy);
+                    console.log('len',len);
+                    if( patron.needsCardOfType(card.type) ) 
+                    {
+                        patron.deliverCard(card.type);
+                        this.removeCard(card);
+                        return true;
+                    }
+                }
             }
-            
+
+            card.reset();
+
+            return false;
         }
 
         onCardHoverOver(card:DragCard)
@@ -122,9 +175,9 @@ namespace Project {
             card.x = dragX;
             card.y = dragY;
         }
-        onDragEnd(pointer, card:DragCard, dropped:boolean )
+        onDragEnd(pointer:Phaser.Input.Pointer, card:DragCard, dropped:boolean )
         {
-            this.checkDrop(card);
+            this.checkDrop(card,pointer.worldX,pointer.worldY);
         }
     }
 

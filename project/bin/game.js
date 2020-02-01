@@ -39,10 +39,14 @@ var Project;
 (function (Project) {
     var CardCollection = (function (_super) {
         __extends(CardCollection, _super);
-        function CardCollection(scene, x, y) {
-            var _this = _super.call(this, scene, x, y) || this;
+        function CardCollection(scene) {
+            var _this = _super.call(this, scene, 0, 0) || this;
             _this.stacksByType = {};
             _this.nStacks = 0;
+            _this.tempMatrix = new Phaser.GameObjects.Components.TransformMatrix();
+            _this.tempParentMatrix = new Phaser.GameObjects.Components.TransformMatrix();
+            _this.delta = new Phaser.Geom.Point();
+            _this.dragDropEnabled = false;
             return _this;
         }
         CardCollection.prototype.updateLayout = function () {
@@ -55,15 +59,13 @@ var Project;
                         child.angle = Phaser.Math.Between(-5, 5);
                         child.updateAnchor();
                     });
-                    stack.x = (nWidth * i);
-                    stack.y = 0;
+                    stack.x = (+this.scene.game.config.width / 2) - (nWidth * 0.5 * (this.nStacks - 1)) + (nWidth * i);
+                    stack.y = (+this.scene.game.config.height) - 30;
                     i++;
                 }
             }
-            this.x = (+this.scene.game.config.width / 2) - (nWidth * 0.5 * (this.nStacks - 1));
-            this.y = (+this.scene.game.config.height) - 30;
         };
-        CardCollection.prototype.collect = function (type) {
+        CardCollection.prototype.collectCard = function (type) {
             var card = new Project.DragCard(this.scene, 0, 0, type);
             card.on(Project.FLIP_CARD_EVENTS.HOVER_OVER, this.onCardHoverOver, this);
             card.on(Project.FLIP_CARD_EVENTS.HOVER_OUT, this.onCardHoverOut, this);
@@ -76,11 +78,29 @@ var Project;
             stack.add(card);
             this.updateLayout();
         };
-        CardCollection.prototype.disableDragDrop = function () {
-            var _this = this;
+        CardCollection.prototype.removeCard = function (card) {
+            card.destroy();
             for (var key in this.stacksByType) {
                 if (this.stacksByType.hasOwnProperty(key)) {
                     var stack = this.stacksByType[key];
+                    if (!stack || stack.list.length == 0) {
+                        this.stacksByType[key].destroy();
+                        delete this.stacksByType[key];
+                        this.nStacks--;
+                    }
+                }
+            }
+            this.updateLayout();
+        };
+        CardCollection.prototype.disableDragDrop = function () {
+            var _this = this;
+            if (!this.dragDropEnabled)
+                return;
+            for (var key in this.stacksByType) {
+                if (this.stacksByType.hasOwnProperty(key)) {
+                    var stack = this.stacksByType[key];
+                    if (!stack)
+                        continue;
                     stack.iterate(function (dragCard) {
                         dragCard.disable();
                         _this.scene.input.setDraggable(dragCard, false);
@@ -90,11 +110,16 @@ var Project;
             this.scene.input.off('dragstart', this.onDragStart, this);
             this.scene.input.off('drag', this.onDrag, this);
             this.scene.input.off('dragend', this.onDragEnd, this);
+            this.dragDropEnabled = false;
         };
         CardCollection.prototype.enableDragDrop = function () {
+            if (this.dragDropEnabled)
+                return;
             for (var key in this.stacksByType) {
                 if (this.stacksByType.hasOwnProperty(key)) {
                     var stack = this.stacksByType[key];
+                    if (stack.list.length == 0)
+                        continue;
                     var topCard = stack.getAt(stack.list.length - 1);
                     topCard.enable();
                     this.scene.input.setDraggable(topCard, true);
@@ -103,14 +128,32 @@ var Project;
             this.scene.input.on('dragstart', this.onDragStart, this);
             this.scene.input.on('drag', this.onDrag, this);
             this.scene.input.on('dragend', this.onDragEnd, this);
+            this.dragDropEnabled = true;
         };
-        CardCollection.prototype.checkDrop = function (card) {
+        CardCollection.prototype.checkDrop = function (card, wx, wy) {
             var shopScene = this.scene.scene.get('ShopActivityScene');
             var patronManager = shopScene.patronManager;
             for (var i = 0; i < patronManager.patrons.length; i++) {
                 var patron = patronManager.patrons[i];
-                console.log('checkdrop', patron, card);
+                patron.getWorldTransformMatrix(this.tempMatrix, this.tempParentMatrix);
+                var d = this.tempMatrix.decomposeMatrix();
+                this.delta.setTo(d.translateX - wx, d.translateY - wy);
+                var len = Phaser.Geom.Point.GetMagnitude(this.delta);
+                if (len <= Project.Patron.dropZoneRadius) {
+                    console.log('---');
+                    console.log('dropping card', card.type, 'patron needs card?', patron.needsCardOfType(card.type));
+                    console.log('patronWorldPos', d.translateX, d.translateY);
+                    console.log('cardWorldPos', wx, wy);
+                    console.log('len', len);
+                    if (patron.needsCardOfType(card.type)) {
+                        patron.deliverCard(card.type);
+                        this.removeCard(card);
+                        return true;
+                    }
+                }
             }
+            card.reset();
+            return false;
         };
         CardCollection.prototype.onCardHoverOver = function (card) {
             this.bringToTop(card);
@@ -127,7 +170,7 @@ var Project;
             card.y = dragY;
         };
         CardCollection.prototype.onDragEnd = function (pointer, card, dropped) {
-            this.checkDrop(card);
+            this.checkDrop(card, pointer.worldX, pointer.worldY);
         };
         return CardCollection;
     }(Phaser.GameObjects.Container));
@@ -322,25 +365,27 @@ var Project;
 })(Project || (Project = {}));
 var Project;
 (function (Project) {
+    var PATRON_EVENTS;
+    (function (PATRON_EVENTS) {
+        PATRON_EVENTS["COUNTDOWN_EXPIRED"] = "COUNTDOWN_EXPIRED";
+        PATRON_EVENTS["SATISFIED"] = "SATISFIED";
+    })(PATRON_EVENTS = Project.PATRON_EVENTS || (Project.PATRON_EVENTS = {}));
     var Patron = (function (_super) {
         __extends(Patron, _super);
         function Patron(scene, x, y) {
             var _this = _super.call(this, scene, x, y) || this;
             _this.request = [];
             _this.requestIcons = [];
+            _this.countdown = null;
             _this.portrait = new Phaser.GameObjects.Sprite(scene, 0, 0, 'portraits', 0);
+            _this.portrait.setOrigin(0.5);
             _this.portrait.setScale(1.5);
             _this.add(_this.portrait);
-            _this.dropZone = new Phaser.GameObjects.Zone(_this.scene, 0, 0).setCircleDropZone(128);
-            var graphics = new Phaser.GameObjects.Graphics(_this.scene);
-            graphics.lineStyle(2, 0xffff00);
-            graphics.strokeCircle(_this.dropZone.x, _this.dropZone.y, _this.dropZone.input.hitArea.radius);
-            _this.add(_this.dropZone);
-            _this.add(graphics);
             _this.requestIconContainer = new Phaser.GameObjects.Container(scene, 0, 0);
             _this.add(_this.requestIconContainer);
             _this.pickRandomFrame();
             _this.generateRequest();
+            _this.dropZone = new Phaser.GameObjects.Zone(_this.scene, 0, 0).setRectangleDropZone(_this.portrait.width, _this.portrait.height);
             return _this;
         }
         Patron.prototype.pickRandomFrame = function () {
@@ -384,10 +429,27 @@ var Project;
             while (!escape) {
                 var idx = Math.floor(resourceTypes.length * Math.random());
                 this.request.push(resourceTypes[idx]);
-                if (Math.random() > 0.8 || (this.request.length >= 5))
+                if (Math.random() > 0.8 || (this.request.length >= 3))
                     escape = true;
             }
             this.updateRequestView();
+            this.startCountDown();
+        };
+        Patron.prototype.getDropZone = function () {
+            return this.dropZone.getBounds();
+        };
+        Patron.prototype.update = function () {
+        };
+        Patron.prototype.startCountDown = function () {
+            console.warn('debug: countdown disabled');
+            return;
+            this.countdown = this.scene.time.delayedCall(Patron.countdownTime, this.countdownExpired, null, this);
+        };
+        Patron.prototype.countdownExpired = function () {
+            this.emit(PATRON_EVENTS.COUNTDOWN_EXPIRED, this, [this]);
+        };
+        Patron.prototype.needsCardOfType = function (type) {
+            return (this.request.indexOf(type) > -1);
         };
         Patron.prototype.deliverCard = function (type) {
             var idx = this.request.indexOf(type);
@@ -399,17 +461,23 @@ var Project;
                 this.patronSatisfied();
         };
         Patron.prototype.patronSatisfied = function () {
-            alert('satisfied');
+            this.emit(PATRON_EVENTS.SATISFIED, this, [this]);
         };
         Patron.nFrames = 107;
         Patron.iconCellWidth = 50;
         Patron.dropZoneRadius = 128;
+        Patron.countdownTime = 30000;
         return Patron;
     }(Phaser.GameObjects.Container));
     Project.Patron = Patron;
 })(Project || (Project = {}));
 var Project;
 (function (Project) {
+    var PATRON_MANAGER_EVENTS;
+    (function (PATRON_MANAGER_EVENTS) {
+        PATRON_MANAGER_EVENTS["PATRON_EXPIRED"] = "PATRON_EXPIRED";
+        PATRON_MANAGER_EVENTS["PATRON_SATISFIED"] = "PATRON_SATISFIED";
+    })(PATRON_MANAGER_EVENTS = Project.PATRON_MANAGER_EVENTS || (Project.PATRON_MANAGER_EVENTS = {}));
     var PatronManager = (function (_super) {
         __extends(PatronManager, _super);
         function PatronManager(scene, x, y) {
@@ -418,17 +486,23 @@ var Project;
             return _this;
         }
         PatronManager.prototype.updateLayout = function () {
+            var cellW = +this.scene.game.config.width / this.list.length;
             Phaser.Actions.GridAlign(this.list, {
                 width: this.list.length,
                 height: 1,
-                cellWidth: PatronManager.patronCellWidth,
+                cellWidth: cellW,
                 cellHeight: 0,
-                x: (+this.scene.game.config.width / 2),
-                y: (+this.scene.game.config.height / 2) - 150
+                x: cellW - (cellW * this.list.length * 0.5)
             });
+        };
+        PatronManager.prototype.update = function () {
+            for (var i = this.patrons.length - 1; i >= 0; i--)
+                this.patrons[i].update();
         };
         PatronManager.prototype.addPatron = function () {
             var patron = new Project.Patron(this.scene, 0, 0);
+            patron.once(Project.PATRON_EVENTS.COUNTDOWN_EXPIRED, this.onPatronCountdownExpired, this);
+            patron.once(Project.PATRON_EVENTS.SATISFIED, this.onPatronSatisfied, this);
             this.patrons.push(patron);
             this.add(patron);
             this.updateLayout();
@@ -440,7 +514,36 @@ var Project;
             patron.destroy();
             this.updateLayout();
         };
-        PatronManager.patronCellWidth = 800 / 3;
+        PatronManager.prototype.start = function () {
+            this.resetClock();
+        };
+        PatronManager.prototype.stop = function () {
+            while (this.patrons.length)
+                this.removePatron(this.patrons.pop());
+            this.nextPatronCountdown.remove();
+            this.nextPatronCountdown = null;
+        };
+        PatronManager.prototype.resetClock = function () {
+            var nextPatronTime = Phaser.Math.Between(PatronManager.minPatronSpawnTime, PatronManager.maxPatronSpawnTime);
+            console.log('nextPatronTime', nextPatronTime);
+            this.nextPatronCountdown = this.scene.time.delayedCall(nextPatronTime, this.spawnPatron, null, this);
+        };
+        PatronManager.prototype.spawnPatron = function () {
+            this.resetClock();
+            if (this.patrons.length < PatronManager.maxPatrons)
+                this.addPatron();
+        };
+        PatronManager.prototype.onPatronCountdownExpired = function (patron) {
+            this.emit(PATRON_MANAGER_EVENTS.PATRON_EXPIRED, this, [patron]);
+            this.removePatron(patron);
+        };
+        PatronManager.prototype.onPatronSatisfied = function (patron) {
+            this.emit(PATRON_MANAGER_EVENTS.PATRON_SATISFIED, this, [patron]);
+            this.removePatron(patron);
+        };
+        PatronManager.minPatronSpawnTime = 6000;
+        PatronManager.maxPatronSpawnTime = 10000;
+        PatronManager.maxPatrons = 3;
         return PatronManager;
     }(Phaser.GameObjects.Container));
     Project.PatronManager = PatronManager;
@@ -572,7 +675,7 @@ var Project;
             this.comparatorA = this.comparatorB = null;
         };
         PairsActivityScene.prototype.collectCardOfType = function (type) {
-            this.cardCollection.collect(type);
+            this.cardCollection.collectCard(type);
         };
         PairsActivityScene.prototype.onCardSelected = function (card) {
             if (this.isComparatorReady())
@@ -604,15 +707,12 @@ var Project;
                 this.resetActivity();
         };
         PairsActivityScene.prototype.onTransitionOut = function () {
-            console.log('pairs onTransitionOut');
             this.sceneChangeButton.visible = false;
         };
         PairsActivityScene.prototype.onTransitionStart = function () {
-            console.log('pairs onTransitionStart');
             this.sceneChangeButton.visible = false;
         };
         PairsActivityScene.prototype.onTransitionComplete = function () {
-            console.log('pairs onTransitionComplete');
             this.sceneChangeButton.visible = true;
         };
         PairsActivityScene.prototype.updateNeighbourPosition = function (y) {
@@ -646,7 +746,10 @@ var Project;
     var ShopActivityScene = (function (_super) {
         __extends(ShopActivityScene, _super);
         function ShopActivityScene() {
-            return _super.call(this, { key: 'ShopActivityScene', active: false }) || this;
+            var _this = _super.call(this, { key: 'ShopActivityScene', active: false }) || this;
+            _this.patronsExpired = 0;
+            _this.patronsSatisfied = 0;
+            return _this;
         }
         ShopActivityScene.prototype.create = function () {
             this.container = this.add.container(0, 0);
@@ -655,14 +758,26 @@ var Project;
             this.sceneChangeButton.setInteractive();
             this.sceneChangeButton.on('pointerup', this.changeActivity, this);
             this.container.add(this.sceneChangeButton);
-            this.patronManager = new Project.PatronManager(this, 0, 0);
+            this.patronManager = new Project.PatronManager(this, (+this.game.config.width / 2), (+this.game.config.height / 2) - 150);
+            this.patronManager.on(Project.PATRON_MANAGER_EVENTS.PATRON_EXPIRED, this.onPatronExpired, this);
             this.container.add(this.patronManager);
+            this.patronManager.start();
             this.patronManager.addPatron();
-            this.patronManager.addPatron();
-            this.patronManager.addPatron();
+            this.cardCollection.enableDragDrop();
             this.events.on(Phaser.Scenes.Events.TRANSITION_OUT, this.onTransitionOut, this);
             this.events.on(Phaser.Scenes.Events.TRANSITION_COMPLETE, this.onTransitionComplete, this);
             this.events.on(Phaser.Scenes.Events.TRANSITION_START, this.onTransitionStart, this);
+        };
+        ShopActivityScene.prototype.update = function () {
+            this.patronManager.update();
+        };
+        ShopActivityScene.prototype.checkEndGame = function () {
+            if (this.patronsExpired >= 3)
+                this.gameOver();
+        };
+        ShopActivityScene.prototype.gameOver = function () {
+            this.patronManager.stop();
+            alert('GAME OVER!');
         };
         ShopActivityScene.prototype.updateTransitionOut = function (progress) {
             var sceneB = this.scene.get('PairsActivityScene');
@@ -695,6 +810,15 @@ var Project;
         ShopActivityScene.prototype.onTransitionComplete = function () {
             this.cardCollection.enableDragDrop();
             this.sceneChangeButton.visible = true;
+        };
+        ShopActivityScene.prototype.onPatronExpired = function () {
+            this.patronsExpired++;
+            console.log('patron expired!', this.patronsExpired);
+            this.checkEndGame();
+        };
+        ShopActivityScene.prototype.onPatronSatisfied = function () {
+            this.patronsSatisfied++;
+            console.log('patron satisfied!', this.patronsSatisfied);
         };
         ShopActivityScene.prototype.updateNeighbourPosition = function (y) {
             this.container.y = y - this.game.config.height;

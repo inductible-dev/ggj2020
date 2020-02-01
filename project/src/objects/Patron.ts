@@ -1,10 +1,17 @@
 namespace Project {
 
+    export enum PATRON_EVENTS {
+        COUNTDOWN_EXPIRED = 'COUNTDOWN_EXPIRED',
+        SATISFIED = 'SATISFIED'
+    }
+
     export class Patron extends Phaser.GameObjects.Container 
     {
         static nFrames = 107;
         static iconCellWidth = 50;
         static dropZoneRadius = 128;
+
+        static countdownTime = 30000;
 
         portrait: Phaser.GameObjects.Sprite;
 
@@ -15,26 +22,26 @@ namespace Project {
 
         dropZone:Phaser.GameObjects.Zone;
 
+        countdown:Phaser.Time.TimerEvent = null;
+
         constructor( scene: Phaser.Scene, x: number, y: number )
         {
             super( scene, x, y );
 
             this.portrait = new Phaser.GameObjects.Sprite( scene, 0, 0, 'portraits', 0 );
+
+            this.portrait.setOrigin(0.5);
+            
             this.portrait.setScale(1.5);
             this.add(this.portrait);
-
-            this.dropZone = new Phaser.GameObjects.Zone( this.scene, 0, 0 ).setCircleDropZone(128);
-            var graphics = new Phaser.GameObjects.Graphics( this.scene );
-            graphics.lineStyle(2, 0xffff00);
-            graphics.strokeCircle( this.dropZone.x, this.dropZone.y, this.dropZone.input.hitArea.radius );
-            this.add(this.dropZone);
-            this.add(graphics);
 
             this.requestIconContainer = new Phaser.GameObjects.Container( scene, 0, 0 );
             this.add(this.requestIconContainer);
             
             this.pickRandomFrame();
             this.generateRequest();
+
+            this.dropZone = new Phaser.GameObjects.Zone( this.scene, 0, 0 ).setRectangleDropZone( this.portrait.width, this.portrait.height );
         }
 
         pickRandomFrame()
@@ -91,10 +98,39 @@ namespace Project {
             {
                 var idx = Math.floor(resourceTypes.length*Math.random());
                 this.request.push(resourceTypes[idx]);
-                if( Math.random() > 0.8 || (this.request.length >= 5) ) escape = true;
+                if( Math.random() > 0.8 || (this.request.length >= 3) ) escape = true;
             }
 
             this.updateRequestView();
+
+            this.startCountDown();
+        }
+
+        getDropZone():Phaser.Geom.Rectangle
+        {
+            return this.dropZone.getBounds();
+        }
+
+        update()
+        {
+            //console.log(this.portrait.frame.name,this.countdown.getProgress());
+        }
+
+        startCountDown()
+        {
+            console.warn('debug: countdown disabled');
+            return;
+            this.countdown = this.scene.time.delayedCall( Patron.countdownTime, this.countdownExpired, null, this);
+        }
+
+        countdownExpired()
+        {
+            this.emit(PATRON_EVENTS.COUNTDOWN_EXPIRED,this,[this]);
+        }
+
+        needsCardOfType(type)
+        {
+            return (this.request.indexOf(type) > -1);
         }
 
         deliverCard(type)
@@ -111,7 +147,7 @@ namespace Project {
 
         patronSatisfied()
         {
-            alert('satisfied');
+            this.emit(PATRON_EVENTS.SATISFIED,this,[this]);
         }
     }
 }

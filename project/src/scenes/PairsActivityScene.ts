@@ -136,7 +136,7 @@ namespace Project {
 
         collectCardOfType(type:CARD_TYPES)
         {
-            this.cardCollection.collect(type);
+            this.cardCollection.collectCard(type);
         }
 
         onCardSelected(card)
@@ -174,20 +174,14 @@ namespace Project {
 
         onTransitionOut()
         {
-            console.log('pairs onTransitionOut');
-
             this.sceneChangeButton.visible = false;
         }
         onTransitionStart()
         {
-            console.log('pairs onTransitionStart');
-
             this.sceneChangeButton.visible = false;
         }
         onTransitionComplete()
         {
-            console.log('pairs onTransitionComplete');
-
             this.sceneChangeButton.visible = true;
         }
 

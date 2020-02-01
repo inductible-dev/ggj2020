@@ -106,7 +106,7 @@
             <key>freeSizeMode</key>
             <enum type="AlgorithmSettings::AlgorithmFreeSizeMode">Best</enum>
             <key>sizeConstraints</key>
-            <enum type="AlgorithmSettings::SizeConstraints">AnySize</enum>
+            <enum type="AlgorithmSettings::SizeConstraints">POT</enum>
             <key>forceSquared</key>
             <false/>
             <key>maxRects</key>
@@ -194,6 +194,9 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">circle.png</key>
+            <key type="filename">drop.png</key>
+            <key type="filename">square.png</key>
             <key type="filename">triangle.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
@@ -207,11 +210,34 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">cog.png</key>
+            <key type="filename">segment.png</key>
+            <key type="filename">sqstar.png</key>
+            <key type="filename">trapezoid.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>30,47,61,94</rect>
+                <key>scale9Paddings</key>
+                <rect>30,47,61,94</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
         </map>
         <key>fileList</key>
         <array>
             <filename>triangle.png</filename>
             <filename>back.png</filename>
+            <filename>cog.png</filename>
+            <filename>drop.png</filename>
+            <filename>segment.png</filename>
+            <filename>sqstar.png</filename>
+            <filename>square.png</filename>
+            <filename>trapezoid.png</filename>
+            <filename>circle.png</filename>
         </array>
         <key>ignoreFileList</key>
         <array/>

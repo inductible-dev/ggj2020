@@ -14,11 +14,13 @@ namespace Project {
         {
             this.container = this.add.container(0,0);
 
+            // scene change button
             this.sceneChangeButton = new Phaser.GameObjects.Sprite(this, 0 ,0, 'ui', 'scene_down');
             this.sceneChangeButton.setPosition( <number>this.game.config.width*0.5, <number>this.game.config.height - this.sceneChangeButton.height*0.5 ) ;
             this.sceneChangeButton.setInteractive();
             this.sceneChangeButton.on('pointerup',this.changeActivity,this);
             this.container.add(this.sceneChangeButton);
+
 
             var x = 100;
             var y = 100;
@@ -69,7 +71,7 @@ namespace Project {
         {
             this.scene.transition({
                 target: 'PairsActivityScene',
-                duration: 500,
+                duration: 250,
                 onUpdate: this.updateTransitionOut,
                 sleep: true
             });

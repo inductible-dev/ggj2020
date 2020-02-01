@@ -25,10 +25,10 @@ var Project;
                     width: 800,
                     height: 600
                 },
-                backgroundColor: '#222222',
-                scene: [Project.ShopActivityScene, Project.PairsActivityScene]
+                backgroundColor: '#ffffff',
+                scene: [Project.Preloader, Project.ShopActivityScene, Project.PairsActivityScene, Project.CardCollectionScene]
             }) || this;
-            _this.scene.start('ShopActivityScene');
+            _this.scene.start('Preloader');
             return _this;
         }
         return Application;
@@ -52,6 +52,17 @@ var Project;
         CARD_EVENTS["HOVER_OVER"] = "HOVER_OVER";
         CARD_EVENTS["HOVER_OUT"] = "HOVER_OUT";
     })(CARD_EVENTS = Project.CARD_EVENTS || (Project.CARD_EVENTS = {}));
+    var CARD_TYPES;
+    (function (CARD_TYPES) {
+        CARD_TYPES["TRIANGLE"] = "triangle";
+        CARD_TYPES["CIRCLE"] = "circle";
+        CARD_TYPES["COG"] = "cog";
+        CARD_TYPES["DROP"] = "drop";
+        CARD_TYPES["TRAPEZOID"] = "trapezoid";
+        CARD_TYPES["SEGMENT"] = "segment";
+        CARD_TYPES["SQSTAR"] = "sqstar";
+        CARD_TYPES["SQUARE"] = "square";
+    })(CARD_TYPES = Project.CARD_TYPES || (Project.CARD_TYPES = {}));
     var Card = (function (_super) {
         __extends(Card, _super);
         function Card(scene, x, y, frontFrame) {
@@ -198,6 +209,103 @@ var Project;
 })(Project || (Project = {}));
 var Project;
 (function (Project) {
+    var Patron = (function (_super) {
+        __extends(Patron, _super);
+        function Patron(scene, x, y) {
+            var _this = _super.call(this, scene, x, y) || this;
+            _this.request = [];
+            _this.requestIcons = [];
+            _this.portrait = new Phaser.GameObjects.Sprite(scene, 0, 0, 'portraits', 0);
+            _this.portrait.setScale(1.5);
+            _this.add(_this.portrait);
+            _this.requestIconContainer = new Phaser.GameObjects.Container(scene, 0, 0);
+            _this.add(_this.requestIconContainer);
+            _this.pickRandomFrame();
+            _this.generateRequest();
+            return _this;
+        }
+        Patron.prototype.pickRandomFrame = function () {
+            this.portrait.setFrame(Phaser.Math.Between(0, Patron.nFrames));
+            this.updateLayout();
+        };
+        Patron.prototype.updateLayout = function () {
+            this.requestIconContainer.x = this.portrait.x - this.requestIconContainer.width * 0.5;
+            this.requestIconContainer.y = this.portrait.y + this.portrait.height;
+        };
+        Patron.prototype.updateRequestView = function () {
+            while (this.requestIcons.length)
+                this.requestIcons.pop().destroy();
+            for (var i = 0; i < this.request.length; i++) {
+                var rCode = this.request[i];
+                var rIcon = new Phaser.GameObjects.Sprite(this.scene, 0, 0, 'ui', rCode);
+                this.requestIcons.push(rIcon);
+                this.requestIconContainer.add(rIcon);
+            }
+            var cWidth = 50;
+            Phaser.Actions.GridAlign(this.requestIcons, {
+                width: this.requestIcons.length,
+                height: 1,
+                cellWidth: cWidth,
+                cellHeight: 0
+            });
+            this.updateLayout();
+        };
+        Patron.prototype.generateRequest = function () {
+            this.request = [];
+            var resourceTypes = [
+                Project.CARD_TYPES.CIRCLE,
+                Project.CARD_TYPES.COG,
+                Project.CARD_TYPES.DROP,
+                Project.CARD_TYPES.SEGMENT,
+                Project.CARD_TYPES.SQSTAR,
+                Project.CARD_TYPES.SQUARE,
+                Project.CARD_TYPES.TRAPEZOID,
+                Project.CARD_TYPES.TRIANGLE
+            ];
+            var escape = false;
+            while (!escape) {
+                var idx = Math.floor(resourceTypes.length * Math.random());
+                this.request.push(resourceTypes[idx]);
+                if (Math.random() > 0.8 || (this.request.length >= 5))
+                    escape = true;
+            }
+            this.updateRequestView();
+        };
+        Patron.prototype.deliverCard = function (type) {
+            var idx = this.request.indexOf(type);
+            if (idx > -1) {
+                this.request.splice(idx, 1);
+                this.updateRequestView();
+            }
+            if (this.request.length == 0)
+                this.patronSatisfied();
+        };
+        Patron.prototype.patronSatisfied = function () {
+            alert('satisfied');
+        };
+        Patron.nFrames = 107;
+        return Patron;
+    }(Phaser.GameObjects.Container));
+    Project.Patron = Patron;
+})(Project || (Project = {}));
+var Project;
+(function (Project) {
+    var CardCollectionScene = (function (_super) {
+        __extends(CardCollectionScene, _super);
+        function CardCollectionScene() {
+            return _super.call(this, { key: 'CardCollectionScene', active: true }) || this;
+        }
+        CardCollectionScene.prototype.create = function () {
+            this.container = this.add.container(0, 0);
+            this.cardCollection = new Project.CardCollection(this);
+            this.container.add(this.cardCollection);
+        };
+        return CardCollectionScene;
+    }(Phaser.Scene));
+    Project.CardCollectionScene = CardCollectionScene;
+})(Project || (Project = {}));
+var Project;
+(function (Project) {
     var PairsActivityScene = (function (_super) {
         __extends(PairsActivityScene, _super);
         function PairsActivityScene() {
@@ -214,15 +322,9 @@ var Project;
             this.sceneChangeButton.on('pointerup', this.changeActivity, this);
             this.container.add(this.sceneChangeButton);
             this.resetActivity();
-            this.cardCollection = new Project.CardCollection(this);
-            this.container.add(this.cardCollection);
             this.events.on(Phaser.Scenes.Events.TRANSITION_OUT, this.onTransitionOut, this);
             this.events.on(Phaser.Scenes.Events.TRANSITION_START, this.onTransitionStart, this);
             this.events.on(Phaser.Scenes.Events.TRANSITION_COMPLETE, this.onTransitionComplete, this);
-        };
-        PairsActivityScene.prototype.preload = function () {
-            this.load.atlas('cards', 'assets/atlas/cards.png', 'assets/atlas/cards.json');
-            this.load.atlas('ui', 'assets/atlas/ui.png', 'assets/atlas/ui.json');
         };
         PairsActivityScene.prototype.resetActivity = function () {
             var nCardsW = 10;
@@ -232,7 +334,16 @@ var Project;
             var tCards = nCardsW * nCardsH;
             var tPairs = tCards / 2;
             var cScale = 0.5;
-            var frames = ['triangle', 'circle', 'cog', 'drop', 'trapezoid', 'segment', 'sqstar', 'square'];
+            var frames = [
+                Project.CARD_TYPES.CIRCLE,
+                Project.CARD_TYPES.COG,
+                Project.CARD_TYPES.DROP,
+                Project.CARD_TYPES.SEGMENT,
+                Project.CARD_TYPES.SQSTAR,
+                Project.CARD_TYPES.SQUARE,
+                Project.CARD_TYPES.TRAPEZOID,
+                Project.CARD_TYPES.TRIANGLE
+            ];
             this.cards = [];
             for (var i = 0; i < tPairs; i++) {
                 var pairFrame = frames[i % frames.length];
@@ -272,6 +383,14 @@ var Project;
             this.container.y = (this.game.config.height * progress);
             sceneB.updateNeighbourPosition(this.container.y);
         };
+        Object.defineProperty(PairsActivityScene.prototype, "cardCollection", {
+            get: function () {
+                var ccScene = this.scene.get('CardCollectionScene');
+                return ccScene.cardCollection;
+            },
+            enumerable: true,
+            configurable: true
+        });
         PairsActivityScene.prototype.changeActivity = function () {
             this.scene.transition({
                 target: 'ShopActivityScene',
@@ -346,6 +465,25 @@ var Project;
 })(Project || (Project = {}));
 var Project;
 (function (Project) {
+    var Preloader = (function (_super) {
+        __extends(Preloader, _super);
+        function Preloader() {
+            return _super.call(this, { key: 'Preloader', active: false }) || this;
+        }
+        Preloader.prototype.preload = function () {
+            this.load.atlas('cards', 'assets/atlas/cards.png', 'assets/atlas/cards.json');
+            this.load.atlas('ui', 'assets/atlas/ui.png', 'assets/atlas/ui.json');
+            this.load.spritesheet('portraits', 'assets/portraits.jpg', { frameWidth: 160, frameHeight: 120 });
+        };
+        Preloader.prototype.create = function () {
+            this.scene.start('ShopActivityScene');
+        };
+        return Preloader;
+    }(Phaser.Scene));
+    Project.Preloader = Preloader;
+})(Project || (Project = {}));
+var Project;
+(function (Project) {
     var ShopActivityScene = (function (_super) {
         __extends(ShopActivityScene, _super);
         function ShopActivityScene() {
@@ -354,34 +492,15 @@ var Project;
         ShopActivityScene.prototype.create = function () {
             this.container = this.add.container(0, 0);
             this.sceneChangeButton = new Phaser.GameObjects.Sprite(this, 0, 0, 'ui', 'scene_down');
-            this.sceneChangeButton.setPosition(this.game.config.width * 0.5, this.game.config.height - this.sceneChangeButton.height * 0.5);
+            this.sceneChangeButton.setPosition(this.game.config.width * 0.5, this.sceneChangeButton.height * 0.5);
             this.sceneChangeButton.setInteractive();
             this.sceneChangeButton.on('pointerup', this.changeActivity, this);
             this.container.add(this.sceneChangeButton);
-            var x = 100;
-            var y = 100;
-            for (var i = 0; i < 6; i++) {
-                var image = new Phaser.GameObjects.Sprite(this, x, y, 'cards', 'back');
-                this.container.add(image);
-                image.setInteractive();
-                this.input.setDraggable(image);
-                x += 4;
-                y += 4;
-            }
-            var portrait = new Phaser.GameObjects.Sprite(this, +this.game.config.width / 2, +this.game.config.height / 2, 'portraits', 5);
-            this.container.add(portrait);
-            this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
-                gameObject.x = dragX;
-                gameObject.y = dragY;
-            });
+            var patron = new Project.Patron(this, +this.game.config.width / 2, (+this.game.config.height / 2) - 150);
+            this.container.add(patron);
             this.events.on(Phaser.Scenes.Events.TRANSITION_OUT, this.onTransitionOut, this);
             this.events.on(Phaser.Scenes.Events.TRANSITION_COMPLETE, this.onTransitionComplete, this);
             this.events.on(Phaser.Scenes.Events.TRANSITION_START, this.onTransitionStart, this);
-        };
-        ShopActivityScene.prototype.preload = function () {
-            this.load.atlas('cards', 'assets/atlas/cards.png', 'assets/atlas/cards.json');
-            this.load.atlas('ui', 'assets/atlas/ui.png', 'assets/atlas/ui.json');
-            this.load.spritesheet('portraits', 'assets/portraits.jpg', { frameWidth: 160, frameHeight: 120 });
         };
         ShopActivityScene.prototype.updateTransitionOut = function (progress) {
             var sceneB = this.scene.get('PairsActivityScene');
@@ -396,6 +515,14 @@ var Project;
                 sleep: true
             });
         };
+        Object.defineProperty(ShopActivityScene.prototype, "cardCollection", {
+            get: function () {
+                var ccScene = this.scene.get('CardCollectionScene');
+                return ccScene.cardCollection;
+            },
+            enumerable: true,
+            configurable: true
+        });
         ShopActivityScene.prototype.onTransitionOut = function () {
             this.sceneChangeButton.visible = false;
         };

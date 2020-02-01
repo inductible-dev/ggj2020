@@ -15,6 +15,17 @@ namespace Project {
         HOVER_OUT = 'HOVER_OUT'
     }
 
+    export enum CARD_TYPES {
+        TRIANGLE = 'triangle',
+        CIRCLE = 'circle',
+        COG = 'cog',
+        DROP = 'drop',
+        TRAPEZOID = 'trapezoid',
+        SEGMENT = 'segment',
+        SQSTAR = 'sqstar',
+        SQUARE = 'square'
+    }
+
     export class Card extends Phaser.GameObjects.Sprite 
     {
         static atlasName = 'cards';

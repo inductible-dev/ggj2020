@@ -13,11 +13,12 @@ namespace Project {
 					width: 800,
 					height: 600
 				},
-				backgroundColor: '#222222',
-				scene: [ ShopActivityScene, PairsActivityScene ]
+				backgroundColor: '#ffffff',
+				scene: [ Preloader, ShopActivityScene, PairsActivityScene, CardCollectionScene ]
 			});
 
-			this.scene.start('ShopActivityScene');
+
+			this.scene.start('Preloader');
 		}
 	}
 

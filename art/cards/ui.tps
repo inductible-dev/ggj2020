@@ -181,6 +181,45 @@
         </struct>
         <key>individualSpriteSettings</key>
         <map type="IndividualSpriteSettingsMap">
+            <key type="filename">../ui/circle.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>12,12,23,23</rect>
+                <key>scale9Paddings</key>
+                <rect>12,12,23,23</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">../ui/cog.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>11,11,22,21</rect>
+                <key>scale9Paddings</key>
+                <rect>11,11,22,21</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">../ui/drop.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>9,12,17,23</rect>
+                <key>scale9Paddings</key>
+                <rect>9,12,17,23</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
             <key type="filename">../ui/scene_down.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
@@ -207,11 +246,84 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">../ui/segment.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>12,9,23,19</rect>
+                <key>scale9Paddings</key>
+                <rect>12,9,23,19</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">../ui/sqstar.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>11,11,23,22</rect>
+                <key>scale9Paddings</key>
+                <rect>11,11,23,22</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">../ui/square.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>10,10,21,21</rect>
+                <key>scale9Paddings</key>
+                <rect>10,10,21,21</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">../ui/trapezoid.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>13,10,25,19</rect>
+                <key>scale9Paddings</key>
+                <rect>13,10,25,19</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
+            <key type="filename">../ui/triangle.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0.5,0.5</point_f>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>13,10,27,19</rect>
+                <key>scale9Paddings</key>
+                <rect>13,10,27,19</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
         </map>
         <key>fileList</key>
         <array>
             <filename>../ui/scene_down.png</filename>
             <filename>../ui/scene_up.png</filename>
+            <filename>../ui/cog.png</filename>
+            <filename>../ui/drop.png</filename>
+            <filename>../ui/segment.png</filename>
+            <filename>../ui/sqstar.png</filename>
+            <filename>../ui/square.png</filename>
+            <filename>../ui/trapezoid.png</filename>
+            <filename>../ui/triangle.png</filename>
+            <filename>../ui/circle.png</filename>
         </array>
         <key>ignoreFileList</key>
         <array/>

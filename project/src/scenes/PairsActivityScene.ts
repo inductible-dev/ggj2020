@@ -10,8 +10,6 @@ namespace Project {
         comparatorA:Card = null;
         comparatorB:Card = null;
 
-        cardCollection:CardCollection ;
-
         constructor ()
         {
             super({ key: 'PairsActivityScene', active: false });
@@ -31,20 +29,10 @@ namespace Project {
             // pairs grid
             this.resetActivity();
 
-            // collection view
-            this.cardCollection = new CardCollection( this );
-            this.container.add(this.cardCollection);
-
             // transition events
             this.events.on(Phaser.Scenes.Events.TRANSITION_OUT,this.onTransitionOut,this);
             this.events.on(Phaser.Scenes.Events.TRANSITION_START,this.onTransitionStart,this);
             this.events.on(Phaser.Scenes.Events.TRANSITION_COMPLETE,this.onTransitionComplete,this);
-        }
-
-        preload ()
-        {
-            this.load.atlas( 'cards', 'assets/atlas/cards.png', 'assets/atlas/cards.json' );
-            this.load.atlas( 'ui', 'assets/atlas/ui.png', 'assets/atlas/ui.json' );
         }
 
         resetActivity()
@@ -56,7 +44,16 @@ namespace Project {
             var tCards = nCardsW*nCardsH;
             var tPairs = tCards/2;
             var cScale = 0.5;
-            var frames = [ 'triangle', 'circle', 'cog', 'drop', 'trapezoid', 'segment', 'sqstar', 'square' ];
+            var frames = [ 
+                CARD_TYPES.CIRCLE, 
+                CARD_TYPES.COG, 
+                CARD_TYPES.DROP, 
+                CARD_TYPES.SEGMENT, 
+                CARD_TYPES.SQSTAR, 
+                CARD_TYPES.SQUARE, 
+                CARD_TYPES.TRAPEZOID, 
+                CARD_TYPES.TRIANGLE 
+            ];
             this.cards = [];
             for( var i=0; i<tPairs; i++)
             {
@@ -98,6 +95,12 @@ namespace Project {
             var sceneB:ShopActivityScene = <ShopActivityScene>this.scene.get('ShopActivityScene');
             this.container.y = ((<number>this.game.config.height) * progress);
             sceneB.updateNeighbourPosition(this.container.y);
+        }
+
+        get cardCollection():CardCollection
+        {
+            var ccScene:CardCollectionScene = <CardCollectionScene>this.scene.get('CardCollectionScene');
+            return ccScene.cardCollection;
         }
 
         changeActivity()

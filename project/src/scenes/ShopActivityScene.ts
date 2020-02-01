@@ -26,7 +26,7 @@ namespace Project {
             var y = 100;
             for (var i = 0; i < 6; i++)
             {
-                var image = new Phaser.GameObjects.Sprite(this, x, y, 'cards', 'back')
+                var image = new Phaser.GameObjects.Sprite(this, x, y, 'cards', 'back');
                 this.container.add(image);
 
                 image.setInteractive();
@@ -38,7 +38,9 @@ namespace Project {
             }
 
 
-            
+            var portrait = new Phaser.GameObjects.Sprite(this, +this.game.config.width/2, +this.game.config.height/2, 'portraits', 5 );
+            this.container.add(portrait);
+
 
             this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
 
@@ -58,7 +60,9 @@ namespace Project {
         {
             this.load.atlas( 'cards', 'assets/atlas/cards.png', 'assets/atlas/cards.json' );
             this.load.atlas( 'ui', 'assets/atlas/ui.png', 'assets/atlas/ui.json' );
+            this.load.spritesheet( 'portraits', 'assets/portraits.jpg', { frameWidth: 160, frameHeight: 120 } );
         }
+        
 
         updateTransitionOut(progress)
         {

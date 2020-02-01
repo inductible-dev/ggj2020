@@ -5,10 +5,12 @@ namespace Project {
         container:Phaser.GameObjects.Container;
         sceneChangeButton:Phaser.GameObjects.Sprite;
 
-        cards:Phaser.GameObjects.Sprite[];
+        cards:Card[];
 
         comparatorA:Card = null;
         comparatorB:Card = null;
+
+        cardCollection:CardCollection ;
 
         constructor ()
         {
@@ -27,7 +29,11 @@ namespace Project {
             this.container.add(this.sceneChangeButton);
 
             // pairs grid
-            this.initPairsGrid();
+            this.resetActivity();
+
+            // collection view
+            this.cardCollection = new CardCollection( this );
+            this.container.add(this.cardCollection);
 
             // transition events
             this.events.on(Phaser.Scenes.Events.TRANSITION_OUT,this.onTransitionOut,this);
@@ -41,10 +47,12 @@ namespace Project {
             this.load.atlas( 'ui', 'assets/atlas/ui.png', 'assets/atlas/ui.json' );
         }
 
-        initPairsGrid()
+        resetActivity()
         {
             var nCardsW = 10;
             var nCardsH = 4;
+            var groupOffsetX = 0;
+            var groupOffsetY = -40;
             var tCards = nCardsW*nCardsH;
             var tPairs = tCards/2;
             var cScale = 0.5;
@@ -60,8 +68,10 @@ namespace Project {
                     this.cards.push(card);
                     this.container.add(card);
                     card.enable();
-                    card.on('clicked',this.onCardSelected,this);
-                    card.on('destroyed',this.onCardDestroy,this);
+                    card.on(CARD_EVENTS.DID_PRESS_BACK,this.onCardSelected,this);
+                    card.on(CARD_EVENTS.DESTROYED,this.onCardDestroy,this);
+                    card.on(CARD_EVENTS.HOVER_OVER,this.onCardHoverOver,this);
+                    card.on(CARD_EVENTS.HOVER_OUT,this.onCardHoverOut,this);
                     card.setFaceDown();
                 }
             }
@@ -77,9 +87,10 @@ namespace Project {
                 height: nCardsH,
                 cellWidth: cWidth,
                 cellHeight: cHeight,
-                x: (+this.game.config.width/2)-((cWidth*nCardsW)/2),
-                y: (+this.game.config.height/2)-((cHeight*nCardsH)/2)
+                x: (+this.game.config.width/2)-((cWidth*nCardsW)/2) + groupOffsetX,
+                y: (+this.game.config.height/2)-((cHeight*nCardsH)/2) + groupOffsetY
             });
+            for( i=0; i<this.cards.length; i++) this.cards[i].updateAnchor(); // allow the card to 'pin' to it's grid location
         }
 
         updateTransitionOut(progress)
@@ -99,36 +110,64 @@ namespace Project {
             });
         }
 
+        isComparatorReady()
+        {
+            return( this.comparatorA != null && this.comparatorB != null );
+        }
+
         runComparator()
         {
             if( this.comparatorA.frame.name == this.comparatorB.frame.name )
             {
+                this.collectCardOfType(this.comparatorA.frame.name);
                 this.comparatorA.destroy();
                 this.comparatorB.destroy();
             }
             else
             {
-                this.comparatorA.setFaceDown();
-                this.comparatorB.setFaceDown();
+                this.comparatorA.reset();
+                this.comparatorB.reset();
             }
             this.comparatorA = this.comparatorB = null;
         }
 
+        collectCardOfType(type:string)
+        {
+            var c = new Card( this, 0, 0, type );
+            this.cardCollection.collect(c);
+        }
+
         onCardSelected(card)
         {
+            if( this.isComparatorReady() ) return ; // awaiting comparator
+
             card.flip(true);
             if( this.comparatorA === null ) this.comparatorA = card;
-            else if( this.comparatorB === null ) 
-            {
-                this.comparatorB = card;
-                this.runComparator();
-            }
+            else if( this.comparatorB === null ) this.comparatorB = card;
+
+            if( this.isComparatorReady() ) this.time.delayedCall( 1000, this.runComparator, null, this);
+        }
+
+        onCardHoverOver(card)
+        {
+            if( this.isComparatorReady() ) return ; // awaiting comparator
+
+            this.container.bringToTop(card);
+            card.raise();
+        }
+        onCardHoverOut(card)
+        {
+            if( this.isComparatorReady() ) return ; // awaiting comparator
+
+            card.lower();
         }
 
         onCardDestroy(card)
         {
             var idx = this.cards.indexOf(card);
             if( idx > -1 ) this.cards.splice( idx, 1 );
+
+            if( this.cards.length == 0 ) this.resetActivity();
         }
 
         onTransitionOut()

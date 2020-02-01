@@ -41,20 +41,53 @@ var Project;
     (function (CardFace) {
         CardFace["FRONT"] = "front";
         CardFace["BACK"] = "back";
-    })(CardFace || (CardFace = {}));
+    })(CardFace = Project.CardFace || (Project.CardFace = {}));
+    var CARD_EVENTS;
+    (function (CARD_EVENTS) {
+        CARD_EVENTS["DESTROYED"] = "DESTROYED";
+        CARD_EVENTS["DID_PRESS_FRONT"] = "DID_PRESS_FRONT";
+        CARD_EVENTS["DID_PRESS_BACK"] = "DID_PRESS_BACK";
+        CARD_EVENTS["WILL_SHOW_FRONT"] = "WILL_SHOW_FRONT";
+        CARD_EVENTS["WILL_SHOW_BACK"] = "WILL_SHOW_BACK";
+        CARD_EVENTS["HOVER_OVER"] = "HOVER_OVER";
+        CARD_EVENTS["HOVER_OUT"] = "HOVER_OUT";
+    })(CARD_EVENTS = Project.CARD_EVENTS || (Project.CARD_EVENTS = {}));
     var Card = (function (_super) {
         __extends(Card, _super);
         function Card(scene, x, y, frontFrame) {
             var _this = _super.call(this, scene, x, y, Card.atlasName, frontFrame) || this;
+            _this.anchorX = 0;
+            _this.anchorY = 0;
+            _this.anchorScale = 1;
+            _this.anchorRotation = 0;
             _this.frontFrame = frontFrame;
             _this.backFrame = Card.backFrame;
+            _this.setOrigin(0.5);
             _this.on('pointerup', function (pointer) {
-                _this.emit('clicked', _this);
+                switch (_this.frame.name) {
+                    case _this.backFrame:
+                        _this.emit(CARD_EVENTS.DID_PRESS_BACK, _this);
+                        break;
+                }
+            }, _this);
+            _this.on('pointerover', function (pointer) {
+                switch (_this.frame.name) {
+                    case _this.backFrame:
+                        _this.emit(CARD_EVENTS.HOVER_OVER, _this);
+                        break;
+                }
+            }, _this);
+            _this.on('pointerout', function (pointer) {
+                switch (_this.frame.name) {
+                    case _this.backFrame:
+                        _this.emit(CARD_EVENTS.HOVER_OUT, _this);
+                        break;
+                }
             }, _this);
             return _this;
         }
         Card.prototype.destroy = function (fromScene) {
-            this.emit('destroyed', this);
+            this.emit(CARD_EVENTS.DESTROYED, this);
             _super.prototype.destroy.call(this, fromScene);
         };
         Card.prototype.enable = function () {
@@ -74,9 +107,11 @@ var Project;
             if (animated === void 0) { animated = true; }
             switch (face) {
                 case CardFace.FRONT:
+                    this.emit(CARD_EVENTS.WILL_SHOW_FRONT, this);
                     this.setFrame(this.frontFrame);
                     break;
                 case CardFace.BACK:
+                    this.emit(CARD_EVENTS.WILL_SHOW_BACK, this);
                     this.setFrame(this.backFrame);
                     break;
             }
@@ -87,11 +122,79 @@ var Project;
         Card.prototype.setFaceDown = function () {
             this.showFace(CardFace.BACK);
         };
+        Card.prototype.raise = function () {
+            this.rotation = this.anchorRotation + ((2 * Math.PI) / 360) * Phaser.Math.Between(-10, 10);
+            this.setScale(this.anchorScale + 0.1);
+        };
+        Card.prototype.lower = function () {
+            this.reset();
+        };
+        Card.prototype.reset = function () {
+            this.setFaceDown();
+            this.rotation = this.anchorRotation;
+            this.setScale(this.anchorScale);
+        };
+        Card.prototype.updateAnchor = function () {
+            this.anchorX = this.x;
+            this.anchorY = this.y;
+            this.anchorScale = this.scale;
+            this.anchorRotation = this.rotation;
+            this.reset();
+        };
         Card.atlasName = 'cards';
         Card.backFrame = 'back';
         return Card;
     }(Phaser.GameObjects.Sprite));
     Project.Card = Card;
+})(Project || (Project = {}));
+var Project;
+(function (Project) {
+    var CardCollection = (function (_super) {
+        __extends(CardCollection, _super);
+        function CardCollection(scene, x, y) {
+            var _this = _super.call(this, scene, x, y) || this;
+            _this.stacksByType = {};
+            _this.nStacks = 0;
+            return _this;
+        }
+        CardCollection.prototype.updateLayout = function () {
+            var i = 0;
+            var nWidth = 110;
+            for (var key in this.stacksByType) {
+                if (this.stacksByType.hasOwnProperty(key)) {
+                    var stack = this.stacksByType[key];
+                    var cWidth = stack.getAt(0).width;
+                    var cHeight = stack.getAt(0).height * 0.2;
+                    Phaser.Actions.GridAlign(stack.list, {
+                        width: 1,
+                        height: stack.list.length,
+                        cellWidth: cWidth,
+                        cellHeight: cHeight
+                    });
+                    stack.iterate(function (child) {
+                        child.angle = Phaser.Math.Between(-10, 10);
+                    });
+                    stack.x = (nWidth * i);
+                    stack.y = 0;
+                    i++;
+                }
+            }
+            this.x = (+this.scene.game.config.width / 2) - (nWidth * 0.5 * (this.nStacks - 1));
+            this.y = (+this.scene.game.config.height) - 100;
+        };
+        CardCollection.prototype.collect = function (card) {
+            var stack = this.stacksByType[card.frame.name];
+            if (!stack) {
+                this.stacksByType[card.frame.name] = stack = new Phaser.GameObjects.Container(this.scene);
+                this.add(stack);
+                this.nStacks++;
+            }
+            stack.add(card);
+            this.updateLayout();
+        };
+        return CardCollection;
+    }(Phaser.GameObjects.Container));
+    Project.CardCollection = CardCollection;
 })(Project || (Project = {}));
 var Project;
 (function (Project) {
@@ -110,7 +213,9 @@ var Project;
             this.sceneChangeButton.setInteractive();
             this.sceneChangeButton.on('pointerup', this.changeActivity, this);
             this.container.add(this.sceneChangeButton);
-            this.initPairsGrid();
+            this.resetActivity();
+            this.cardCollection = new Project.CardCollection(this);
+            this.container.add(this.cardCollection);
             this.events.on(Phaser.Scenes.Events.TRANSITION_OUT, this.onTransitionOut, this);
             this.events.on(Phaser.Scenes.Events.TRANSITION_START, this.onTransitionStart, this);
             this.events.on(Phaser.Scenes.Events.TRANSITION_COMPLETE, this.onTransitionComplete, this);
@@ -119,9 +224,11 @@ var Project;
             this.load.atlas('cards', 'assets/atlas/cards.png', 'assets/atlas/cards.json');
             this.load.atlas('ui', 'assets/atlas/ui.png', 'assets/atlas/ui.json');
         };
-        PairsActivityScene.prototype.initPairsGrid = function () {
+        PairsActivityScene.prototype.resetActivity = function () {
             var nCardsW = 10;
             var nCardsH = 4;
+            var groupOffsetX = 0;
+            var groupOffsetY = -40;
             var tCards = nCardsW * nCardsH;
             var tPairs = tCards / 2;
             var cScale = 0.5;
@@ -135,8 +242,10 @@ var Project;
                     this.cards.push(card);
                     this.container.add(card);
                     card.enable();
-                    card.on('clicked', this.onCardSelected, this);
-                    card.on('destroyed', this.onCardDestroy, this);
+                    card.on(Project.CARD_EVENTS.DID_PRESS_BACK, this.onCardSelected, this);
+                    card.on(Project.CARD_EVENTS.DESTROYED, this.onCardDestroy, this);
+                    card.on(Project.CARD_EVENTS.HOVER_OVER, this.onCardHoverOver, this);
+                    card.on(Project.CARD_EVENTS.HOVER_OUT, this.onCardHoverOut, this);
                     card.setFaceDown();
                 }
             }
@@ -152,9 +261,11 @@ var Project;
                 height: nCardsH,
                 cellWidth: cWidth,
                 cellHeight: cHeight,
-                x: (+this.game.config.width / 2) - ((cWidth * nCardsW) / 2),
-                y: (+this.game.config.height / 2) - ((cHeight * nCardsH) / 2)
+                x: (+this.game.config.width / 2) - ((cWidth * nCardsW) / 2) + groupOffsetX,
+                y: (+this.game.config.height / 2) - ((cHeight * nCardsH) / 2) + groupOffsetY
             });
+            for (i = 0; i < this.cards.length; i++)
+                this.cards[i].updateAnchor();
         };
         PairsActivityScene.prototype.updateTransitionOut = function (progress) {
             var sceneB = this.scene.get('ShopActivityScene');
@@ -169,30 +280,53 @@ var Project;
                 sleep: true
             });
         };
+        PairsActivityScene.prototype.isComparatorReady = function () {
+            return (this.comparatorA != null && this.comparatorB != null);
+        };
         PairsActivityScene.prototype.runComparator = function () {
             if (this.comparatorA.frame.name == this.comparatorB.frame.name) {
+                this.collectCardOfType(this.comparatorA.frame.name);
                 this.comparatorA.destroy();
                 this.comparatorB.destroy();
             }
             else {
-                this.comparatorA.setFaceDown();
-                this.comparatorB.setFaceDown();
+                this.comparatorA.reset();
+                this.comparatorB.reset();
             }
             this.comparatorA = this.comparatorB = null;
         };
+        PairsActivityScene.prototype.collectCardOfType = function (type) {
+            var c = new Project.Card(this, 0, 0, type);
+            this.cardCollection.collect(c);
+        };
         PairsActivityScene.prototype.onCardSelected = function (card) {
+            if (this.isComparatorReady())
+                return;
             card.flip(true);
             if (this.comparatorA === null)
                 this.comparatorA = card;
-            else if (this.comparatorB === null) {
+            else if (this.comparatorB === null)
                 this.comparatorB = card;
-                this.runComparator();
-            }
+            if (this.isComparatorReady())
+                this.time.delayedCall(1000, this.runComparator, null, this);
+        };
+        PairsActivityScene.prototype.onCardHoverOver = function (card) {
+            if (this.isComparatorReady())
+                return;
+            this.container.bringToTop(card);
+            card.raise();
+        };
+        PairsActivityScene.prototype.onCardHoverOut = function (card) {
+            if (this.isComparatorReady())
+                return;
+            card.lower();
         };
         PairsActivityScene.prototype.onCardDestroy = function (card) {
             var idx = this.cards.indexOf(card);
             if (idx > -1)
                 this.cards.splice(idx, 1);
+            if (this.cards.length == 0)
+                this.resetActivity();
         };
         PairsActivityScene.prototype.onTransitionOut = function () {
             this.sceneChangeButton.visible = false;
@@ -234,6 +368,8 @@ var Project;
                 x += 4;
                 y += 4;
             }
+            var portrait = new Phaser.GameObjects.Sprite(this, +this.game.config.width / 2, +this.game.config.height / 2, 'portraits', 5);
+            this.container.add(portrait);
             this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
                 gameObject.x = dragX;
                 gameObject.y = dragY;
@@ -245,6 +381,7 @@ var Project;
         ShopActivityScene.prototype.preload = function () {
             this.load.atlas('cards', 'assets/atlas/cards.png', 'assets/atlas/cards.json');
             this.load.atlas('ui', 'assets/atlas/ui.png', 'assets/atlas/ui.json');
+            this.load.spritesheet('portraits', 'assets/portraits.jpg', { frameWidth: 160, frameHeight: 120 });
         };
         ShopActivityScene.prototype.updateTransitionOut = function (progress) {
             var sceneB = this.scene.get('PairsActivityScene');

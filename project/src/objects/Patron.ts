@@ -3,6 +3,8 @@ namespace Project {
     export class Patron extends Phaser.GameObjects.Container 
     {
         static nFrames = 107;
+        static iconCellWidth = 50;
+        static dropZoneRadius = 128;
 
         portrait: Phaser.GameObjects.Sprite;
 
@@ -11,6 +13,8 @@ namespace Project {
         requestIcons: Phaser.GameObjects.Sprite[] = [];
         requestIconContainer: Phaser.GameObjects.Container;
 
+        dropZone:Phaser.GameObjects.Zone;
+
         constructor( scene: Phaser.Scene, x: number, y: number )
         {
             super( scene, x, y );
@@ -18,6 +22,13 @@ namespace Project {
             this.portrait = new Phaser.GameObjects.Sprite( scene, 0, 0, 'portraits', 0 );
             this.portrait.setScale(1.5);
             this.add(this.portrait);
+
+            this.dropZone = new Phaser.GameObjects.Zone( this.scene, 0, 0 ).setCircleDropZone(128);
+            var graphics = new Phaser.GameObjects.Graphics( this.scene );
+            graphics.lineStyle(2, 0xffff00);
+            graphics.strokeCircle( this.dropZone.x, this.dropZone.y, this.dropZone.input.hitArea.radius );
+            this.add(this.dropZone);
+            this.add(graphics);
 
             this.requestIconContainer = new Phaser.GameObjects.Container( scene, 0, 0 );
             this.add(this.requestIconContainer);
@@ -34,7 +45,7 @@ namespace Project {
 
         updateLayout()
         {
-            this.requestIconContainer.x = this.portrait.x - this.requestIconContainer.width*0.5;
+            this.requestIconContainer.x = this.portrait.x - ((Patron.iconCellWidth*(this.requestIcons.length-1))/2);
             this.requestIconContainer.y = this.portrait.y + this.portrait.height;
         }
 
@@ -50,11 +61,10 @@ namespace Project {
                 this.requestIconContainer.add(rIcon);
             }
 
-            var cWidth = 50;
             Phaser.Actions.GridAlign( this.requestIcons, {
                 width: this.requestIcons.length,
                 height: 1,
-                cellWidth: cWidth,
+                cellWidth: Patron.iconCellWidth,
                 cellHeight: 0
             });
 

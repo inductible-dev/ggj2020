@@ -3,7 +3,10 @@ namespace Project {
     export class ShopActivityScene extends Phaser.Scene {
 
         container:Phaser.GameObjects.Container;
+
         sceneChangeButton:Phaser.GameObjects.Sprite;
+
+        patronManager:PatronManager;
 
         constructor ()
         {
@@ -22,8 +25,12 @@ namespace Project {
             this.container.add(this.sceneChangeButton);
 
             // patron manager
-            var patron = new Patron( this, +this.game.config.width/2, (+this.game.config.height/2) - 150 );
-            this.container.add(patron);
+            this.patronManager = new PatronManager( this, 0, 0 );
+            this.container.add(this.patronManager);
+
+            this.patronManager.addPatron();
+            this.patronManager.addPatron();
+            this.patronManager.addPatron();
             
             this.events.on(Phaser.Scenes.Events.TRANSITION_OUT,this.onTransitionOut,this);
             this.events.on(Phaser.Scenes.Events.TRANSITION_COMPLETE,this.onTransitionComplete,this);
@@ -56,6 +63,7 @@ namespace Project {
 
         onTransitionOut()
         {
+            this.cardCollection.disableDragDrop();
             this.sceneChangeButton.visible = false;
         }
         onTransitionStart()
@@ -64,6 +72,7 @@ namespace Project {
         }
         onTransitionComplete()
         {
+            this.cardCollection.enableDragDrop();
             this.sceneChangeButton.visible = true;
         }
 

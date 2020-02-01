@@ -5,10 +5,10 @@ namespace Project {
         container:Phaser.GameObjects.Container;
         sceneChangeButton:Phaser.GameObjects.Sprite;
 
-        cards:Card[];
+        cards:FlipCard[];
 
-        comparatorA:Card = null;
-        comparatorB:Card = null;
+        comparatorA:FlipCard = null;
+        comparatorB:FlipCard = null;
 
         constructor ()
         {
@@ -44,7 +44,7 @@ namespace Project {
             var tCards = nCardsW*nCardsH;
             var tPairs = tCards/2;
             var cScale = 0.5;
-            var frames = [ 
+            var types:CARD_TYPES[] = [ 
                 CARD_TYPES.CIRCLE, 
                 CARD_TYPES.COG, 
                 CARD_TYPES.DROP, 
@@ -57,18 +57,18 @@ namespace Project {
             this.cards = [];
             for( var i=0; i<tPairs; i++)
             {
-                var pairFrame = frames[i%frames.length];
+                var type = types[i%types.length];
                 for( var p=0; p<2; p++) // make a pair
                 {
-                    var card = new Card( this, 0, 0, pairFrame );
+                    var card = new FlipCard( this, 0, 0, type );
                     card.setScale(cScale);
                     this.cards.push(card);
                     this.container.add(card);
                     card.enable();
-                    card.on(CARD_EVENTS.DID_PRESS_BACK,this.onCardSelected,this);
-                    card.on(CARD_EVENTS.DESTROYED,this.onCardDestroy,this);
-                    card.on(CARD_EVENTS.HOVER_OVER,this.onCardHoverOver,this);
-                    card.on(CARD_EVENTS.HOVER_OUT,this.onCardHoverOut,this);
+                    card.on(FLIP_CARD_EVENTS.DID_PRESS_BACK,this.onCardSelected,this);
+                    card.on(FLIP_CARD_EVENTS.DESTROYED,this.onCardDestroy,this);
+                    card.on(FLIP_CARD_EVENTS.HOVER_OVER,this.onCardHoverOver,this);
+                    card.on(FLIP_CARD_EVENTS.HOVER_OUT,this.onCardHoverOut,this);
                     card.setFaceDown();
                 }
             }
@@ -120,9 +120,9 @@ namespace Project {
 
         runComparator()
         {
-            if( this.comparatorA.frame.name == this.comparatorB.frame.name )
+            if( this.comparatorA.type == this.comparatorB.type )
             {
-                this.collectCardOfType(this.comparatorA.frame.name);
+                this.collectCardOfType(this.comparatorA.type);
                 this.comparatorA.destroy();
                 this.comparatorB.destroy();
             }
@@ -134,10 +134,9 @@ namespace Project {
             this.comparatorA = this.comparatorB = null;
         }
 
-        collectCardOfType(type:string)
+        collectCardOfType(type:CARD_TYPES)
         {
-            var c = new Card( this, 0, 0, type );
-            this.cardCollection.collect(c);
+            this.cardCollection.collect(type);
         }
 
         onCardSelected(card)
@@ -175,14 +174,20 @@ namespace Project {
 
         onTransitionOut()
         {
+            console.log('pairs onTransitionOut');
+
             this.sceneChangeButton.visible = false;
         }
         onTransitionStart()
         {
+            console.log('pairs onTransitionStart');
+
             this.sceneChangeButton.visible = false;
         }
         onTransitionComplete()
         {
+            console.log('pairs onTransitionComplete');
+
             this.sceneChangeButton.visible = true;
         }
 

@@ -5,7 +5,7 @@ namespace Project {
         BACK = 'back'
     }
 
-    export enum CARD_EVENTS {
+    export enum FLIP_CARD_EVENTS {
         DESTROYED = 'DESTROYED',
         DID_PRESS_FRONT = 'DID_PRESS_FRONT',
         DID_PRESS_BACK = 'DID_PRESS_BACK',
@@ -15,23 +15,12 @@ namespace Project {
         HOVER_OUT = 'HOVER_OUT'
     }
 
-    export enum CARD_TYPES {
-        TRIANGLE = 'triangle',
-        CIRCLE = 'circle',
-        COG = 'cog',
-        DROP = 'drop',
-        TRAPEZOID = 'trapezoid',
-        SEGMENT = 'segment',
-        SQSTAR = 'sqstar',
-        SQUARE = 'square'
-    }
-
-    export class Card extends Phaser.GameObjects.Sprite 
+    export class FlipCard extends Phaser.GameObjects.Sprite 
     {
         static atlasName = 'cards';
         static backFrame = 'back';
 
-        frontFrame:string;
+        type:CARD_TYPES;
         backFrame:string;
 
         raiseTween:Phaser.Tweens.Tween;
@@ -41,13 +30,13 @@ namespace Project {
         anchorY:number = 0;
         anchorScale:number = 1;
         anchorRotation:number = 0;
-
-        constructor( scene: Phaser.Scene, x: number, y: number, frontFrame?: string )
+        
+        constructor( scene: Phaser.Scene, x: number, y: number, type: CARD_TYPES )
         {
-            super( scene, x, y, Card.atlasName, frontFrame );
+            super( scene, x, y, FlipCard.atlasName, type );
 
-            this.frontFrame = frontFrame;
-            this.backFrame = Card.backFrame;
+            this.type = type;
+            this.backFrame = FlipCard.backFrame;
 
             this.setOrigin(0.5);
 
@@ -55,7 +44,7 @@ namespace Project {
                 switch(this.frame.name)
                 {
                     case this.backFrame:
-                        this.emit(CARD_EVENTS.DID_PRESS_BACK, this);
+                        this.emit(FLIP_CARD_EVENTS.DID_PRESS_BACK, this);
                         break;
                 }
             }, this);
@@ -64,7 +53,7 @@ namespace Project {
                 switch(this.frame.name)
                 {
                     case this.backFrame:
-                        this.emit(CARD_EVENTS.HOVER_OVER, this);
+                        this.emit(FLIP_CARD_EVENTS.HOVER_OVER, this);
                         break;
                 }
             }, this);
@@ -72,7 +61,7 @@ namespace Project {
                 switch(this.frame.name)
                 {
                     case this.backFrame:
-                        this.emit(CARD_EVENTS.HOVER_OUT, this);
+                        this.emit(FLIP_CARD_EVENTS.HOVER_OUT, this);
                         break;
                 }
             }, this);
@@ -80,7 +69,7 @@ namespace Project {
 
         destroy(fromScene?:boolean)
         {
-            this.emit(CARD_EVENTS.DESTROYED,this);
+            this.emit(FLIP_CARD_EVENTS.DESTROYED,this);
             super.destroy(fromScene);
         }
 
@@ -95,7 +84,7 @@ namespace Project {
 
         flip(animated:boolean=true)
         {
-            if( <string>this.frame.name == this.frontFrame ) this.showFace(CardFace.BACK);
+            if( <string>this.frame.name == this.type ) this.showFace(CardFace.BACK);
             else if( <string>this.frame.name == this.backFrame ) this.showFace(CardFace.FRONT);
         }
         showFace(face:string,animated:boolean=true)
@@ -103,11 +92,11 @@ namespace Project {
             switch(face)
             {
                 case CardFace.FRONT:
-                    this.emit(CARD_EVENTS.WILL_SHOW_FRONT, this);
-                    this.setFrame(this.frontFrame);
+                    this.emit(FLIP_CARD_EVENTS.WILL_SHOW_FRONT, this);
+                    this.setFrame(this.type);
                     break;
                 case CardFace.BACK:
-                    this.emit(CARD_EVENTS.WILL_SHOW_BACK, this);
+                    this.emit(FLIP_CARD_EVENTS.WILL_SHOW_BACK, this);
                     this.setFrame(this.backFrame);
                     break;
             }

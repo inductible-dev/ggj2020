@@ -14,7 +14,7 @@ namespace Project {
 					height: 600
 				},
 				backgroundColor: '#efefef',
-				scene: [ Preloader, ShopActivityScene, PairsActivityScene, CardCollectionScene ]
+				scene: [ Preloader, TitleScene, ShopActivityScene, PairsActivityScene, CardCollectionScene ]
 			});
 
 

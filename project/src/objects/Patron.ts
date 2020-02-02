@@ -8,15 +8,15 @@ namespace Project {
     export class Patron extends Phaser.GameObjects.Container 
     {
         static nFrames = 107;
-        static iconCellWidth = 50;
+        static iconCellWidth = 74;
         static dropZoneRadius = 200;
 
         static countdownTime = 90000;
         static rewardProgress = 0.25;
 
-        static GREEN = 0x00ff00;
-        static RED = 0xff0000;
-        static YELLOW = 0xffff00;
+        static GREEN = 0x966FE6;
+        static RED = 0xE66F6F;
+        static YELLOW = 0xE6976F;
 
         portrait: Phaser.GameObjects.Sprite;
 
@@ -56,10 +56,13 @@ namespace Project {
             this.generateRequest();
 
             this.bg = new Phaser.GameObjects.Graphics( this.scene );
-            var pw = this.portrait.width*this.portrait.scale;
+            var lw = 7;
+            var pw = (this.portrait.width*this.portrait.scale)+lw*2;
             var ph = 300;
             this.bg.fillStyle( 0xffffff, 1 );
+            this.bg.lineStyle( lw, 0x000000, 1 );
             this.bg.fillRoundedRect( -pw*0.5, (-ph*0.5)+30, pw, ph, 10);
+            this.bg.stroke();
             this.addAt(this.bg,0);
 
             this.dropZone = new Phaser.GameObjects.Zone( this.scene, 0, 0 ).setRectangleDropZone( this.portrait.width, this.portrait.height );
@@ -194,12 +197,11 @@ namespace Project {
             var deltaTime = this.endTime-clockTime;
             var p = deltaTime / Patron.countdownTime;
 
-console.log('deliver card at p',p);
-
             p = p + Patron.rewardProgress;
             p = Math.min( 1, p );
             this.endTime = clockTime + Patron.countdownTime * p;
-            console.log('reward',p);
+
+            this.scene.game.sound.play('yeah');
 
             if( this.request.length == 0 ) this.patronSatisfied();
         }

@@ -4,93 +4,72 @@
 			"image": "ui.png",
 			"format": "RGBA8888",
 			"size": {
-				"w": 231,
-				"h": 125
+				"w": 610,
+				"h": 248
 			},
 			"scale": 1,
 			"frames": [
 				{
-					"filename": "scene_down",
+					"filename": "playbutt",
 					"rotated": false,
-					"trimmed": false,
+					"trimmed": true,
 					"sourceSize": {
-						"w": 132,
-						"h": 36
+						"w": 316,
+						"h": 176
 					},
 					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 132,
-						"h": 36
+						"x": 4,
+						"y": 5,
+						"w": 304,
+						"h": 166
 					},
 					"frame": {
 						"x": 1,
 						"y": 1,
-						"w": 132,
-						"h": 36
+						"w": 304,
+						"h": 166
+					}
+				},
+				{
+					"filename": "scene_down",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 292,
+						"h": 104
+					},
+					"spriteSourceSize": {
+						"x": 8,
+						"y": 4,
+						"w": 281,
+						"h": 84
+					},
+					"frame": {
+						"x": 307,
+						"y": 1,
+						"w": 281,
+						"h": 84
 					}
 				},
 				{
 					"filename": "scene_up",
 					"rotated": false,
-					"trimmed": false,
+					"trimmed": true,
 					"sourceSize": {
-						"w": 131,
-						"h": 36
+						"w": 292,
+						"h": 104
 					},
 					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 131,
-						"h": 36
+						"x": 3,
+						"y": 16,
+						"w": 281,
+						"h": 84
 					},
 					"frame": {
-						"x": 1,
-						"y": 39,
-						"w": 131,
-						"h": 36
-					}
-				},
-				{
-					"filename": "drop",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 35,
-						"h": 47
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 35,
-						"h": 47
-					},
-					"frame": {
-						"x": 1,
-						"y": 77,
-						"w": 35,
-						"h": 47
-					}
-				},
-				{
-					"filename": "circle",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 46,
-						"h": 46
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 46,
-						"h": 46
-					},
-					"frame": {
-						"x": 38,
-						"y": 77,
-						"w": 46,
-						"h": 46
+						"x": 307,
+						"y": 87,
+						"w": 281,
+						"h": 84
 					}
 				},
 				{
@@ -98,20 +77,20 @@
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 45,
-						"h": 44
+						"w": 75,
+						"h": 74
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 45,
-						"h": 44
+						"w": 75,
+						"h": 74
 					},
 					"frame": {
-						"x": 86,
-						"y": 77,
-						"w": 45,
-						"h": 44
+						"x": 1,
+						"y": 169,
+						"w": 75,
+						"h": 74
 					}
 				},
 				{
@@ -119,62 +98,41 @@
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 53,
-						"h": 39
+						"w": 75,
+						"h": 74
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 53,
-						"h": 39
+						"w": 75,
+						"h": 74
 					},
 					"frame": {
-						"x": 135,
-						"y": 1,
-						"w": 53,
-						"h": 39
+						"x": 78,
+						"y": 169,
+						"w": 75,
+						"h": 74
 					}
 				},
 				{
-					"filename": "trapezoid",
+					"filename": "circle",
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 50,
-						"h": 39
+						"w": 74,
+						"h": 74
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 50,
-						"h": 39
+						"w": 74,
+						"h": 74
 					},
 					"frame": {
-						"x": 134,
-						"y": 42,
-						"w": 50,
-						"h": 39
-					}
-				},
-				{
-					"filename": "square",
-					"rotated": false,
-					"trimmed": false,
-					"sourceSize": {
-						"w": 41,
-						"h": 41
-					},
-					"spriteSourceSize": {
-						"x": 0,
-						"y": 0,
-						"w": 41,
-						"h": 41
-					},
-					"frame": {
-						"x": 133,
-						"y": 83,
-						"w": 41,
-						"h": 41
+						"x": 155,
+						"y": 169,
+						"w": 74,
+						"h": 74
 					}
 				},
 				{
@@ -182,20 +140,41 @@
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 44,
-						"h": 43
+						"w": 74,
+						"h": 74
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 44,
-						"h": 43
+						"w": 74,
+						"h": 74
 					},
 					"frame": {
-						"x": 186,
-						"y": 42,
-						"w": 44,
-						"h": 43
+						"x": 231,
+						"y": 169,
+						"w": 74,
+						"h": 74
+					}
+				},
+				{
+					"filename": "drop",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 74,
+						"h": 74
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 74,
+						"h": 74
+					},
+					"frame": {
+						"x": 307,
+						"y": 173,
+						"w": 74,
+						"h": 74
 					}
 				},
 				{
@@ -203,20 +182,62 @@
 					"rotated": false,
 					"trimmed": false,
 					"sourceSize": {
-						"w": 47,
-						"h": 37
+						"w": 74,
+						"h": 74
 					},
 					"spriteSourceSize": {
 						"x": 0,
 						"y": 0,
-						"w": 47,
-						"h": 37
+						"w": 74,
+						"h": 74
 					},
 					"frame": {
-						"x": 176,
-						"y": 87,
-						"w": 47,
-						"h": 37
+						"x": 383,
+						"y": 173,
+						"w": 74,
+						"h": 74
+					}
+				},
+				{
+					"filename": "square",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 74,
+						"h": 74
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 74,
+						"h": 74
+					},
+					"frame": {
+						"x": 459,
+						"y": 173,
+						"w": 74,
+						"h": 74
+					}
+				},
+				{
+					"filename": "trapezoid",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 74,
+						"h": 74
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 74,
+						"h": 74
+					},
+					"frame": {
+						"x": 535,
+						"y": 173,
+						"w": 74,
+						"h": 74
 					}
 				}
 			]
@@ -225,6 +246,6 @@
 	"meta": {
 		"app": "https://www.codeandweb.com/texturepacker",
 		"version": "3.0",
-		"smartupdate": "$TexturePacker:SmartUpdate:3e805efecf5b0dd8949482990a5a0fb0:4caf756b3edccb860dbd68a7e301c702:5b04aa198265472a3c5f56958d78e97b$"
+		"smartupdate": "$TexturePacker:SmartUpdate:096a8668268811402d034ed690804c35:9f8244e46adf2017328c497640c6258a:5b04aa198265472a3c5f56958d78e97b$"
 	}
 }

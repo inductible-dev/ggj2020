@@ -2,6 +2,8 @@ namespace Project {
 
     export class ShopActivityScene extends Phaser.Scene {
 
+        static gameOverAfterExpiredPatrons:number = 1;
+
         container:Phaser.GameObjects.Container;
 
         sceneChangeButton:Phaser.GameObjects.Sprite;
@@ -24,13 +26,15 @@ namespace Project {
 
             // scene change button
             this.sceneChangeButton = new Phaser.GameObjects.Sprite(this, 0 ,0, 'ui', 'scene_down');
-            this.sceneChangeButton.setPosition( <number>this.game.config.width-(this.sceneChangeButton.width*0.5), this.sceneChangeButton.height*0.5 ) ;
+            this.sceneChangeButton.setPosition( +this.game.config.width*0.5, (+this.game.config.height-this.sceneChangeButton.height*0.5)+30 ) ;
             this.sceneChangeButton.setInteractive();
             this.sceneChangeButton.on('pointerup',this.changeActivity,this);
+            this.sceneChangeButton.on('pointerover',()=>{ this.sceneChangeButton.setScale(1.1); },this);
+            this.sceneChangeButton.on('pointerout',()=>{ this.sceneChangeButton.setScale(1); },this);
             this.container.add(this.sceneChangeButton);
 
             // patron manager
-            this.patronManager = new PatronManager( this, (+this.game.config.width/2), (+this.game.config.height/2)-150 );
+            this.patronManager = new PatronManager( this, (+this.game.config.width/2), (+this.game.config.height/2)-160 );
             this.patronManager.on(PATRON_MANAGER_EVENTS.PATRON_EXPIRED,this.onPatronExpired,this);
             this.container.add(this.patronManager);
             this.patronManager.start();
@@ -51,7 +55,7 @@ namespace Project {
 
         checkEndGame()
         {
-            if( this.patronsExpired >= 3 ) this.gameOver();
+            if( this.patronsExpired >= ShopActivityScene.gameOverAfterExpiredPatrons ) this.gameOver();
         }
 
         gameOver()
@@ -71,7 +75,7 @@ namespace Project {
         {
             this.scene.transition({
                 target: 'PairsActivityScene',
-                duration: 250,
+                duration: 200,
                 onUpdate: this.updateTransitionOut,
                 sleep: true
             });
@@ -85,6 +89,7 @@ namespace Project {
 
         onTransitionOut()
         {
+            this.game.sound.play('transition');
             this.cardCollection.disableDragDrop();
             this.sceneChangeButton.visible = false;
         }

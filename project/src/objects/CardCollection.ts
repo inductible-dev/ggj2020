@@ -33,7 +33,7 @@ namespace Project {
                     });
 
                     stack.x = (+this.scene.game.config.width/2) - (nWidth*0.5*(this.nStacks-1)) + (nWidth*i);
-                    stack.y = (+this.scene.game.config.height) - 30;
+                    stack.y = (+this.scene.game.config.height) + (this.dragDropEnabled?-160:-10);
 
                     i++ ;
                 }
@@ -106,6 +106,8 @@ namespace Project {
             this.scene.input.off('drag', this.onDrag, this);
             this.scene.input.off('dragend', this.onDragEnd, this);
             this.dragDropEnabled = false;
+
+            this.updateLayout();
         }
         enableDragDrop()
         {
@@ -125,6 +127,8 @@ namespace Project {
             this.scene.input.on('drag', this.onDrag, this);
             this.scene.input.on('dragend', this.onDragEnd, this);
             this.dragDropEnabled = true;
+
+            this.updateLayout();
         }
 
         checkDrop(card:DragCard,wx:number,wy:number):boolean

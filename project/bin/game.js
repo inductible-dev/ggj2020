@@ -26,7 +26,7 @@ var Project;
                     height: 600
                 },
                 backgroundColor: '#efefef',
-                scene: [Project.Preloader, Project.ShopActivityScene, Project.PairsActivityScene, Project.CardCollectionScene]
+                scene: [Project.Preloader, Project.TitleScene, Project.ShopActivityScene, Project.PairsActivityScene, Project.CardCollectionScene]
             }) || this;
             _this.scene.start('Preloader');
             return _this;
@@ -60,7 +60,7 @@ var Project;
                         child.updateAnchor();
                     });
                     stack.x = (+this.scene.game.config.width / 2) - (nWidth * 0.5 * (this.nStacks - 1)) + (nWidth * i);
-                    stack.y = (+this.scene.game.config.height) - 30;
+                    stack.y = (+this.scene.game.config.height) + (this.dragDropEnabled ? -160 : -10);
                     i++;
                 }
             }
@@ -118,6 +118,7 @@ var Project;
             this.scene.input.off('drag', this.onDrag, this);
             this.scene.input.off('dragend', this.onDragEnd, this);
             this.dragDropEnabled = false;
+            this.updateLayout();
         };
         CardCollection.prototype.enableDragDrop = function () {
             if (this.dragDropEnabled)
@@ -136,6 +137,7 @@ var Project;
             this.scene.input.on('drag', this.onDrag, this);
             this.scene.input.on('dragend', this.onDragEnd, this);
             this.dragDropEnabled = true;
+            this.updateLayout();
         };
         CardCollection.prototype.checkDrop = function (card, wx, wy) {
             var shopScene = this.scene.scene.get('ShopActivityScene');
@@ -396,10 +398,13 @@ var Project;
             _this.pickRandomFrame();
             _this.generateRequest();
             _this.bg = new Phaser.GameObjects.Graphics(_this.scene);
-            var pw = _this.portrait.width * _this.portrait.scale;
+            var lw = 7;
+            var pw = (_this.portrait.width * _this.portrait.scale) + lw * 2;
             var ph = 300;
             _this.bg.fillStyle(0xffffff, 1);
+            _this.bg.lineStyle(lw, 0x000000, 1);
             _this.bg.fillRoundedRect(-pw * 0.5, (-ph * 0.5) + 30, pw, ph, 10);
+            _this.bg.stroke();
             _this.addAt(_this.bg, 0);
             _this.dropZone = new Phaser.GameObjects.Zone(_this.scene, 0, 0).setRectangleDropZone(_this.portrait.width, _this.portrait.height);
             return _this;
@@ -497,11 +502,10 @@ var Project;
             var clockTime = new Date().getTime();
             var deltaTime = this.endTime - clockTime;
             var p = deltaTime / Patron.countdownTime;
-            console.log('deliver card at p', p);
             p = p + Patron.rewardProgress;
             p = Math.min(1, p);
             this.endTime = clockTime + Patron.countdownTime * p;
-            console.log('reward', p);
+            this.scene.game.sound.play('yeah');
             if (this.request.length == 0)
                 this.patronSatisfied();
         };
@@ -509,13 +513,13 @@ var Project;
             this.emit(PATRON_EVENTS.SATISFIED, this, [this]);
         };
         Patron.nFrames = 107;
-        Patron.iconCellWidth = 50;
+        Patron.iconCellWidth = 74;
         Patron.dropZoneRadius = 200;
         Patron.countdownTime = 90000;
         Patron.rewardProgress = 0.25;
-        Patron.GREEN = 0x00ff00;
-        Patron.RED = 0xff0000;
-        Patron.YELLOW = 0xffff00;
+        Patron.GREEN = 0x966FE6;
+        Patron.RED = 0xE66F6F;
+        Patron.YELLOW = 0xE6976F;
         return Patron;
     }(Phaser.GameObjects.Container));
     Project.Patron = Patron;
@@ -554,6 +558,7 @@ var Project;
             patron.once(Project.PATRON_EVENTS.SATISFIED, this.onPatronSatisfied, this);
             this.patrons.push(patron);
             this.add(patron);
+            this.scene.game.sound.play('doorbell');
             this.updateLayout();
         };
         PatronManager.prototype.removePatron = function (patron) {
@@ -624,11 +629,15 @@ var Project;
             return _this;
         }
         PairsActivityScene.prototype.create = function () {
+            var _this = this;
             this.container = this.add.container(0, 0);
+            this.container.add(new Phaser.GameObjects.Sprite(this, +this.game.config.width / 2, +this.game.config.height / 2, 'parts_bg'));
             this.sceneChangeButton = new Phaser.GameObjects.Sprite(this, 0, 0, 'ui', 'scene_up');
-            this.sceneChangeButton.setPosition(this.game.config.width - (this.sceneChangeButton.width * 0.5), this.sceneChangeButton.height * 0.5);
+            this.sceneChangeButton.setPosition(this.game.config.width * 0.5, (this.sceneChangeButton.height * 0.5) - 30);
             this.sceneChangeButton.setInteractive();
             this.sceneChangeButton.on('pointerup', this.changeActivity, this);
+            this.sceneChangeButton.on('pointerover', function () { _this.sceneChangeButton.setScale(1.1); }, this);
+            this.sceneChangeButton.on('pointerout', function () { _this.sceneChangeButton.setScale(1); }, this);
             this.container.add(this.sceneChangeButton);
             this.resetActivity();
             this.events.on(Phaser.Scenes.Events.TRANSITION_OUT, this.onTransitionOut, this);
@@ -636,10 +645,12 @@ var Project;
             this.events.on(Phaser.Scenes.Events.TRANSITION_COMPLETE, this.onTransitionComplete, this);
         };
         PairsActivityScene.prototype.resetActivity = function () {
-            var nCardsW = 6;
-            var nCardsH = 4;
+            var nCardsW = 8;
+            var nCardsH = 3;
+            if ((nCardsW * nCardsH) % 2 != 0)
+                throw new Error('Must be an even number of cards!');
             var groupOffsetX = 0;
-            var groupOffsetY = -40;
+            var groupOffsetY = -10;
             var tCards = nCardsW * nCardsH;
             var tPairs = tCards / 2;
             var cScale = 0.5;
@@ -703,7 +714,7 @@ var Project;
         PairsActivityScene.prototype.changeActivity = function () {
             this.scene.transition({
                 target: 'ShopActivityScene',
-                duration: 250,
+                duration: 200,
                 onUpdate: this.updateTransitionOut,
                 sleep: true
             });
@@ -718,24 +729,29 @@ var Project;
                 this.comparatorB.destroy();
             }
             else {
+                this.game.sound.play('incorrect');
                 this.comparatorA.reset();
                 this.comparatorB.reset();
             }
             this.comparatorA = this.comparatorB = null;
         };
         PairsActivityScene.prototype.collectCardOfType = function (type) {
+            this.game.sound.play('collect');
             this.cardCollection.collectCard(type);
         };
         PairsActivityScene.prototype.onCardSelected = function (card) {
             if (this.isComparatorReady())
                 return;
+            this.game.sound.play('flip');
             card.flip(true);
             if (this.comparatorA === null)
                 this.comparatorA = card;
             else if (this.comparatorB === null)
                 this.comparatorB = card;
-            if (this.isComparatorReady())
+            if (this.isComparatorReady()) {
+                this.game.sound.play('comparator');
                 this.time.delayedCall(1000, this.runComparator, null, this);
+            }
         };
         PairsActivityScene.prototype.onCardHoverOver = function (card) {
             if (this.isComparatorReady())
@@ -756,6 +772,7 @@ var Project;
                 this.resetActivity();
         };
         PairsActivityScene.prototype.onTransitionOut = function () {
+            this.game.sound.play('transition');
             this.sceneChangeButton.visible = false;
         };
         PairsActivityScene.prototype.onTransitionStart = function () {
@@ -783,9 +800,27 @@ var Project;
             this.load.atlas('ui', 'assets/atlas/ui.png', 'assets/atlas/ui.json');
             this.load.spritesheet('portraits', 'assets/portraits.jpg', { frameWidth: 160, frameHeight: 120 });
             this.load.image('shop_bg', 'assets/shop.png');
+            this.load.image('parts_bg', 'assets/parts.png');
+            this.load.audio('doorbell', 'assets/sfx/doorentry.mp3');
+            this.load.audio('music', 'assets/sfx/bensound-badass.mp3');
+            this.load.audio('yeah', 'assets/sfx/yeah.mp3');
+            this.load.audio('comparator', 'assets/sfx/comparator.mp3');
+            this.load.audio('transition', 'assets/sfx/transition.mp3');
+            this.load.audio('collect', 'assets/sfx/collect.mp3');
+            this.load.audio('incorrect', 'assets/sfx/incorrect.mp3');
+            this.load.audio('flip', 'assets/sfx/flip.mp3');
         };
         Preloader.prototype.create = function () {
-            this.scene.start('ShopActivityScene');
+            this.game.sound.add('music');
+            this.game.sound.play('music', { volume: 0.5 });
+            this.game.sound.add('doorbell');
+            this.game.sound.add('comparator');
+            this.game.sound.add('yeah');
+            this.game.sound.add('collect');
+            this.game.sound.add('transition');
+            this.game.sound.add('incorrect');
+            this.game.sound.add('flip');
+            this.scene.start('TitleScene');
         };
         return Preloader;
     }(Phaser.Scene));
@@ -802,14 +837,17 @@ var Project;
             return _this;
         }
         ShopActivityScene.prototype.create = function () {
+            var _this = this;
             this.container = this.add.container(0, 0);
             this.container.add(new Phaser.GameObjects.Sprite(this, +this.game.config.width / 2, +this.game.config.height / 2, 'shop_bg'));
             this.sceneChangeButton = new Phaser.GameObjects.Sprite(this, 0, 0, 'ui', 'scene_down');
-            this.sceneChangeButton.setPosition(this.game.config.width - (this.sceneChangeButton.width * 0.5), this.sceneChangeButton.height * 0.5);
+            this.sceneChangeButton.setPosition(+this.game.config.width * 0.5, (+this.game.config.height - this.sceneChangeButton.height * 0.5) + 30);
             this.sceneChangeButton.setInteractive();
             this.sceneChangeButton.on('pointerup', this.changeActivity, this);
+            this.sceneChangeButton.on('pointerover', function () { _this.sceneChangeButton.setScale(1.1); }, this);
+            this.sceneChangeButton.on('pointerout', function () { _this.sceneChangeButton.setScale(1); }, this);
             this.container.add(this.sceneChangeButton);
-            this.patronManager = new Project.PatronManager(this, (+this.game.config.width / 2), (+this.game.config.height / 2) - 150);
+            this.patronManager = new Project.PatronManager(this, (+this.game.config.width / 2), (+this.game.config.height / 2) - 160);
             this.patronManager.on(Project.PATRON_MANAGER_EVENTS.PATRON_EXPIRED, this.onPatronExpired, this);
             this.container.add(this.patronManager);
             this.patronManager.start();
@@ -823,7 +861,7 @@ var Project;
             this.patronManager.update(timestamp, elapsed);
         };
         ShopActivityScene.prototype.checkEndGame = function () {
-            if (this.patronsExpired >= 3)
+            if (this.patronsExpired >= ShopActivityScene.gameOverAfterExpiredPatrons)
                 this.gameOver();
         };
         ShopActivityScene.prototype.gameOver = function () {
@@ -838,7 +876,7 @@ var Project;
         ShopActivityScene.prototype.changeActivity = function () {
             this.scene.transition({
                 target: 'PairsActivityScene',
-                duration: 250,
+                duration: 200,
                 onUpdate: this.updateTransitionOut,
                 sleep: true
             });
@@ -852,6 +890,7 @@ var Project;
             configurable: true
         });
         ShopActivityScene.prototype.onTransitionOut = function () {
+            this.game.sound.play('transition');
             this.cardCollection.disableDragDrop();
             this.sceneChangeButton.visible = false;
         };
@@ -874,8 +913,34 @@ var Project;
         ShopActivityScene.prototype.updateNeighbourPosition = function (y) {
             this.container.y = y - this.game.config.height;
         };
+        ShopActivityScene.gameOverAfterExpiredPatrons = 1;
         return ShopActivityScene;
     }(Phaser.Scene));
     Project.ShopActivityScene = ShopActivityScene;
+})(Project || (Project = {}));
+var Project;
+(function (Project) {
+    var TitleScene = (function (_super) {
+        __extends(TitleScene, _super);
+        function TitleScene() {
+            return _super.call(this, { key: 'TitleScene', active: false }) || this;
+        }
+        TitleScene.prototype.create = function () {
+            this.container = this.add.container(0, 0);
+            this.container.add(new Phaser.GameObjects.Sprite(this, +this.game.config.width / 2, +this.game.config.height / 2, 'parts_bg'));
+            var playButton = new Phaser.GameObjects.Sprite(this, 0, 0, 'ui', 'playbutt');
+            playButton.setPosition(+this.game.config.width * 0.5, (+this.game.config.height - playButton.height * 0.5) + 20);
+            playButton.setInteractive();
+            playButton.on('pointerup', this.changeActivity, this);
+            playButton.on('pointerover', function () { playButton.setScale(1.1); }, this);
+            playButton.on('pointerout', function () { playButton.setScale(1); }, this);
+            this.container.add(playButton);
+        };
+        TitleScene.prototype.changeActivity = function () {
+            this.scene.start('ShopActivityScene');
+        };
+        return TitleScene;
+    }(Phaser.Scene));
+    Project.TitleScene = TitleScene;
 })(Project || (Project = {}));
 //# sourceMappingURL=game.js.map

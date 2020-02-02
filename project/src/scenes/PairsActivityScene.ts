@@ -19,11 +19,15 @@ namespace Project {
         {
             this.container = this.add.container(0,0);
 
+            this.container.add(new Phaser.GameObjects.Sprite(this,+this.game.config.width/2,+this.game.config.height/2,'parts_bg'));
+
             // scene change button
             this.sceneChangeButton = new Phaser.GameObjects.Sprite(this, 0, 0, 'ui', 'scene_up');
-            this.sceneChangeButton.setPosition( <number>this.game.config.width-(this.sceneChangeButton.width*0.5), this.sceneChangeButton.height*0.5 ) ;
+            this.sceneChangeButton.setPosition( <number>this.game.config.width*0.5, (this.sceneChangeButton.height*0.5)-30 ) ;
             this.sceneChangeButton.setInteractive();
             this.sceneChangeButton.on('pointerup',this.changeActivity,this);
+            this.sceneChangeButton.on('pointerover',()=>{ this.sceneChangeButton.setScale(1.1); },this);
+            this.sceneChangeButton.on('pointerout',()=>{ this.sceneChangeButton.setScale(1); },this);
             this.container.add(this.sceneChangeButton);
 
             // pairs grid
@@ -37,10 +41,11 @@ namespace Project {
 
         resetActivity()
         {
-            var nCardsW = 6;
-            var nCardsH = 4;
+            var nCardsW = 8;
+            var nCardsH = 3;
+            if((nCardsW*nCardsH)%2 != 0) throw new Error('Must be an even number of cards!');
             var groupOffsetX = 0;
-            var groupOffsetY = -40;
+            var groupOffsetY = -10;
             var tCards = nCardsW*nCardsH;
             var tPairs = tCards/2;
             var cScale = 0.5;
@@ -107,7 +112,7 @@ namespace Project {
         {
             this.scene.transition({
                 target: 'ShopActivityScene',
-                duration: 250,
+                duration: 200,
                 onUpdate: this.updateTransitionOut,
                 sleep: true
             });
@@ -128,6 +133,8 @@ namespace Project {
             }
             else
             {
+                this.game.sound.play('incorrect');
+
                 this.comparatorA.reset();
                 this.comparatorB.reset();
             }
@@ -136,6 +143,7 @@ namespace Project {
 
         collectCardOfType(type:CARD_TYPES)
         {
+            this.game.sound.play('collect');
             this.cardCollection.collectCard(type);
         }
 
@@ -143,11 +151,17 @@ namespace Project {
         {
             if( this.isComparatorReady() ) return ; // awaiting comparator
 
+            this.game.sound.play('flip');
+
             card.flip(true);
             if( this.comparatorA === null ) this.comparatorA = card;
             else if( this.comparatorB === null ) this.comparatorB = card;
 
-            if( this.isComparatorReady() ) this.time.delayedCall( 1000, this.runComparator, null, this);
+            if( this.isComparatorReady() ) 
+            {
+                this.game.sound.play('comparator');
+                this.time.delayedCall( 1000, this.runComparator, null, this);
+            }
         }
 
         onCardHoverOver(card)
@@ -174,6 +188,7 @@ namespace Project {
 
         onTransitionOut()
         {
+            this.game.sound.play('transition');
             this.sceneChangeButton.visible = false;
         }
         onTransitionStart()

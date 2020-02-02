@@ -47,6 +47,8 @@ namespace Project {
             this.patrons.push(patron);
             this.add(patron);
 
+            this.scene.game.sound.play('doorbell');
+
             this.updateLayout();
         }
         removePatron(patron:Patron)

@@ -9,7 +9,7 @@ namespace Project {
     {
         static nFrames = 107;
         static iconCellWidth = 50;
-        static dropZoneRadius = 128;
+        static dropZoneRadius = 200;
 
         static countdownTime = 90000;
         static rewardProgress = 0.25;
@@ -33,12 +33,13 @@ namespace Project {
 
         expired:boolean ;
 
+        bg:Phaser.GameObjects.Graphics;
+
         constructor( scene: Phaser.Scene, x: number, y: number )
         {
             super( scene, x, y );
 
             this.portrait = new Phaser.GameObjects.Sprite( scene, 0, 0, 'portraits', 0 );
-
             this.portrait.setOrigin(0.5);
             
             this.portrait.setScale(1.5);
@@ -53,6 +54,13 @@ namespace Project {
 
             this.pickRandomFrame();
             this.generateRequest();
+
+            this.bg = new Phaser.GameObjects.Graphics( this.scene );
+            var pw = this.portrait.width*this.portrait.scale;
+            var ph = 300;
+            this.bg.fillStyle( 0xffffff, 1 );
+            this.bg.fillRoundedRect( -pw*0.5, (-ph*0.5)+30, pw, ph, 10);
+            this.addAt(this.bg,0);
 
             this.dropZone = new Phaser.GameObjects.Zone( this.scene, 0, 0 ).setRectangleDropZone( this.portrait.width, this.portrait.height );
         }
@@ -69,7 +77,7 @@ namespace Project {
             this.requestIconContainer.y = this.portrait.y + this.portrait.height;
 
             this.timeBar.x = this.portrait.x - ((this.portrait.width*this.portrait.scale)/2);
-            this.timeBar.y = this.portrait.y - ((this.portrait.height*this.portrait.scale)/2) - 10;
+            this.timeBar.y = this.portrait.y + ((this.portrait.height*this.portrait.scale)/2);
         }
 
         updateRequestView()

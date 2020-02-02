@@ -20,6 +20,8 @@ namespace Project {
         {
             this.container = this.add.container(0,0);
 
+            this.container.add(new Phaser.GameObjects.Sprite(this,+this.game.config.width/2,+this.game.config.height/2,'shop_bg'));
+
             // scene change button
             this.sceneChangeButton = new Phaser.GameObjects.Sprite(this, 0 ,0, 'ui', 'scene_down');
             this.sceneChangeButton.setPosition( <number>this.game.config.width-(this.sceneChangeButton.width*0.5), this.sceneChangeButton.height*0.5 ) ;

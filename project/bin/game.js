@@ -395,6 +395,12 @@ var Project;
             _this.updateTimeBar(1);
             _this.pickRandomFrame();
             _this.generateRequest();
+            _this.bg = new Phaser.GameObjects.Graphics(_this.scene);
+            var pw = _this.portrait.width * _this.portrait.scale;
+            var ph = 300;
+            _this.bg.fillStyle(0xffffff, 1);
+            _this.bg.fillRoundedRect(-pw * 0.5, (-ph * 0.5) + 30, pw, ph, 10);
+            _this.addAt(_this.bg, 0);
             _this.dropZone = new Phaser.GameObjects.Zone(_this.scene, 0, 0).setRectangleDropZone(_this.portrait.width, _this.portrait.height);
             return _this;
         }
@@ -406,7 +412,7 @@ var Project;
             this.requestIconContainer.x = this.portrait.x - ((Patron.iconCellWidth * (this.requestIcons.length - 1)) / 2);
             this.requestIconContainer.y = this.portrait.y + this.portrait.height;
             this.timeBar.x = this.portrait.x - ((this.portrait.width * this.portrait.scale) / 2);
-            this.timeBar.y = this.portrait.y - ((this.portrait.height * this.portrait.scale) / 2) - 10;
+            this.timeBar.y = this.portrait.y + ((this.portrait.height * this.portrait.scale) / 2);
         };
         Patron.prototype.updateRequestView = function () {
             while (this.requestIcons.length)
@@ -504,7 +510,7 @@ var Project;
         };
         Patron.nFrames = 107;
         Patron.iconCellWidth = 50;
-        Patron.dropZoneRadius = 128;
+        Patron.dropZoneRadius = 200;
         Patron.countdownTime = 90000;
         Patron.rewardProgress = 0.25;
         Patron.GREEN = 0x00ff00;
@@ -776,6 +782,7 @@ var Project;
             this.load.atlas('cards', 'assets/atlas/cards.png', 'assets/atlas/cards.json');
             this.load.atlas('ui', 'assets/atlas/ui.png', 'assets/atlas/ui.json');
             this.load.spritesheet('portraits', 'assets/portraits.jpg', { frameWidth: 160, frameHeight: 120 });
+            this.load.image('shop_bg', 'assets/shop.png');
         };
         Preloader.prototype.create = function () {
             this.scene.start('ShopActivityScene');
@@ -796,6 +803,7 @@ var Project;
         }
         ShopActivityScene.prototype.create = function () {
             this.container = this.add.container(0, 0);
+            this.container.add(new Phaser.GameObjects.Sprite(this, +this.game.config.width / 2, +this.game.config.height / 2, 'shop_bg'));
             this.sceneChangeButton = new Phaser.GameObjects.Sprite(this, 0, 0, 'ui', 'scene_down');
             this.sceneChangeButton.setPosition(this.game.config.width - (this.sceneChangeButton.width * 0.5), this.sceneChangeButton.height * 0.5);
             this.sceneChangeButton.setInteractive();

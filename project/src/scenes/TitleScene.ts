@@ -15,11 +15,11 @@ namespace Project {
         {
             this.container = this.add.container(0,0);
 
-            this.container.add(new Phaser.GameObjects.Sprite(this,+this.game.config.width/2,+this.game.config.height/2,'parts_bg'));
+            this.container.add(new Phaser.GameObjects.Sprite(this,+this.game.config.width/2,+this.game.config.height/2,'title_bg'));
 
             // scene change button
             var playButton = new Phaser.GameObjects.Sprite(this, 0 ,0, 'ui', 'playbutt');
-            playButton.setPosition( +this.game.config.width*0.5, (+this.game.config.height-playButton.height*0.5)+20 ) ;
+            playButton.setPosition( +this.game.config.width*0.5, (+this.game.config.height-playButton.height*0.5)+30 ) ;
             playButton.setInteractive();
             playButton.on('pointerup',this.changeActivity,this);
             playButton.on('pointerover',()=>{ playButton.setScale(1.1); },this);

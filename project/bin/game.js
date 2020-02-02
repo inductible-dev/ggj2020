@@ -799,6 +799,7 @@ var Project;
             this.load.atlas('cards', 'assets/atlas/cards.png', 'assets/atlas/cards.json');
             this.load.atlas('ui', 'assets/atlas/ui.png', 'assets/atlas/ui.json');
             this.load.spritesheet('portraits', 'assets/portraits.jpg', { frameWidth: 160, frameHeight: 120 });
+            this.load.image('title_bg', 'assets/title.png');
             this.load.image('shop_bg', 'assets/shop.png');
             this.load.image('parts_bg', 'assets/parts.png');
             this.load.audio('doorbell', 'assets/sfx/doorentry.mp3');
@@ -927,9 +928,9 @@ var Project;
         }
         TitleScene.prototype.create = function () {
             this.container = this.add.container(0, 0);
-            this.container.add(new Phaser.GameObjects.Sprite(this, +this.game.config.width / 2, +this.game.config.height / 2, 'parts_bg'));
+            this.container.add(new Phaser.GameObjects.Sprite(this, +this.game.config.width / 2, +this.game.config.height / 2, 'title_bg'));
             var playButton = new Phaser.GameObjects.Sprite(this, 0, 0, 'ui', 'playbutt');
-            playButton.setPosition(+this.game.config.width * 0.5, (+this.game.config.height - playButton.height * 0.5) + 20);
+            playButton.setPosition(+this.game.config.width * 0.5, (+this.game.config.height - playButton.height * 0.5) + 30);
             playButton.setInteractive();
             playButton.on('pointerup', this.changeActivity, this);
             playButton.on('pointerover', function () { playButton.setScale(1.1); }, this);

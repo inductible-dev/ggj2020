@@ -11,7 +11,12 @@ namespace Project {
         static iconCellWidth = 50;
         static dropZoneRadius = 128;
 
-        static countdownTime = 30000;
+        static countdownTime = 90000;
+        static rewardProgress = 0.25;
+
+        static GREEN = 0x00ff00;
+        static RED = 0xff0000;
+        static YELLOW = 0xffff00;
 
         portrait: Phaser.GameObjects.Sprite;
 
@@ -22,7 +27,11 @@ namespace Project {
 
         dropZone:Phaser.GameObjects.Zone;
 
-        countdown:Phaser.Time.TimerEvent = null;
+        timeBar:Phaser.GameObjects.Graphics;
+
+        endTime:number = 0;
+
+        expired:boolean ;
 
         constructor( scene: Phaser.Scene, x: number, y: number )
         {
@@ -37,7 +46,11 @@ namespace Project {
 
             this.requestIconContainer = new Phaser.GameObjects.Container( scene, 0, 0 );
             this.add(this.requestIconContainer);
-            
+
+            this.timeBar = new Phaser.GameObjects.Graphics( scene );
+            this.add(this.timeBar);
+            this.updateTimeBar(1);
+
             this.pickRandomFrame();
             this.generateRequest();
 
@@ -54,6 +67,9 @@ namespace Project {
         {
             this.requestIconContainer.x = this.portrait.x - ((Patron.iconCellWidth*(this.requestIcons.length-1))/2);
             this.requestIconContainer.y = this.portrait.y + this.portrait.height;
+
+            this.timeBar.x = this.portrait.x - ((this.portrait.width*this.portrait.scale)/2);
+            this.timeBar.y = this.portrait.y - ((this.portrait.height*this.portrait.scale)/2) - 10;
         }
 
         updateRequestView()
@@ -78,8 +94,20 @@ namespace Project {
             this.updateLayout();
         }
 
+        updateTimeBar(progress:number)
+        {
+            this.timeBar.clear();
+            var col = Patron.GREEN;
+            if( progress < 0.5 ) col = Patron.YELLOW;
+            if( progress < 0.25 ) col = Patron.RED;
+            this.timeBar.fillStyle(col, 1);
+            this.timeBar.fillRect( 0, 0, this.portrait.width*this.portrait.scale*progress, 10 );
+        }
+
         generateRequest()
         {
+            this.expired = false;
+
             this.request = [];
 
             var resourceTypes = [ 
@@ -111,16 +139,27 @@ namespace Project {
             return this.dropZone.getBounds();
         }
 
-        update()
+        update(timestamp,elapsed)
         {
-            //console.log(this.portrait.frame.name,this.countdown.getProgress());
+            if( this.expired ) this.countdownExpired();
+
+            var clockTime = new Date().getTime();
+
+            var deltaTime = this.endTime-clockTime;
+
+            var p = deltaTime / Patron.countdownTime;
+            this.updateTimeBar(p);
+
+            if( p <= 0 ) 
+            {
+                this.expired = true;
+                this.countdownExpired();
+            }
         }
 
         startCountDown()
         {
-            console.warn('debug: countdown disabled');
-            return;
-            this.countdown = this.scene.time.delayedCall( Patron.countdownTime, this.countdownExpired, null, this);
+            this.endTime = new Date().getTime() + Patron.countdownTime;
         }
 
         countdownExpired()
@@ -141,6 +180,18 @@ namespace Project {
                 this.request.splice(idx,1);
                 this.updateRequestView();
             }
+
+            // award some time
+            var clockTime = new Date().getTime();
+            var deltaTime = this.endTime-clockTime;
+            var p = deltaTime / Patron.countdownTime;
+
+console.log('deliver card at p',p);
+
+            p = p + Patron.rewardProgress;
+            p = Math.min( 1, p );
+            this.endTime = clockTime + Patron.countdownTime * p;
+            console.log('reward',p);
 
             if( this.request.length == 0 ) this.patronSatisfied();
         }

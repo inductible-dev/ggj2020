@@ -32,9 +32,9 @@ namespace Project {
             });
         }
 
-        update()
+        update(timestamp,elapsed)
         {
-            for( var i=this.patrons.length-1; i>=0; i-- ) this.patrons[i].update();
+            for( var i=this.patrons.length-1; i>=0; i-- ) this.patrons[i].update(timestamp,elapsed);
         }
 
         addPatron()

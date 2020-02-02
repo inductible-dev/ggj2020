@@ -21,7 +21,7 @@ namespace Project {
 
             // scene change button
             this.sceneChangeButton = new Phaser.GameObjects.Sprite(this, 0, 0, 'ui', 'scene_up');
-            this.sceneChangeButton.setPosition( <number>this.game.config.width*0.5, this.sceneChangeButton.height*0.5 ) ;
+            this.sceneChangeButton.setPosition( <number>this.game.config.width-(this.sceneChangeButton.width*0.5), this.sceneChangeButton.height*0.5 ) ;
             this.sceneChangeButton.setInteractive();
             this.sceneChangeButton.on('pointerup',this.changeActivity,this);
             this.container.add(this.sceneChangeButton);
@@ -37,7 +37,7 @@ namespace Project {
 
         resetActivity()
         {
-            var nCardsW = 10;
+            var nCardsW = 6;
             var nCardsH = 4;
             var groupOffsetX = 0;
             var groupOffsetY = -40;

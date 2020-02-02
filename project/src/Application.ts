@@ -13,7 +13,7 @@ namespace Project {
 					width: 800,
 					height: 600
 				},
-				backgroundColor: '#ffffff',
+				backgroundColor: '#efefef',
 				scene: [ Preloader, ShopActivityScene, PairsActivityScene, CardCollectionScene ]
 			});
 

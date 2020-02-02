@@ -90,8 +90,15 @@ namespace Project {
                     var stack = this.stacksByType[key];
                     if( ! stack ) continue;
                     stack.iterate((dragCard:DragCard)=>{
-                        dragCard.disable();
-                        this.scene.input.setDraggable(dragCard,false);
+                        try{
+                            if( ! dragCard ) return;
+                            dragCard.disable();
+                            this.scene.input.setDraggable(dragCard,false);
+                        }
+                        catch(e)
+                        {
+                            console.log('Dodged an unresolved issue',e.message);
+                        }
                     });
                 }
             }

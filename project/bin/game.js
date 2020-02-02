@@ -25,7 +25,7 @@ var Project;
                     width: 800,
                     height: 600
                 },
-                backgroundColor: '#ffffff',
+                backgroundColor: '#efefef',
                 scene: [Project.Preloader, Project.ShopActivityScene, Project.PairsActivityScene, Project.CardCollectionScene]
             }) || this;
             _this.scene.start('Preloader');
@@ -102,8 +102,15 @@ var Project;
                     if (!stack)
                         continue;
                     stack.iterate(function (dragCard) {
-                        dragCard.disable();
-                        _this.scene.input.setDraggable(dragCard, false);
+                        try {
+                            if (!dragCard)
+                                return;
+                            dragCard.disable();
+                            _this.scene.input.setDraggable(dragCard, false);
+                        }
+                        catch (e) {
+                            console.log('Dodged an unresolved issue', e.message);
+                        }
                     });
                 }
             }
@@ -376,13 +383,16 @@ var Project;
             var _this = _super.call(this, scene, x, y) || this;
             _this.request = [];
             _this.requestIcons = [];
-            _this.countdown = null;
+            _this.endTime = 0;
             _this.portrait = new Phaser.GameObjects.Sprite(scene, 0, 0, 'portraits', 0);
             _this.portrait.setOrigin(0.5);
             _this.portrait.setScale(1.5);
             _this.add(_this.portrait);
             _this.requestIconContainer = new Phaser.GameObjects.Container(scene, 0, 0);
             _this.add(_this.requestIconContainer);
+            _this.timeBar = new Phaser.GameObjects.Graphics(scene);
+            _this.add(_this.timeBar);
+            _this.updateTimeBar(1);
             _this.pickRandomFrame();
             _this.generateRequest();
             _this.dropZone = new Phaser.GameObjects.Zone(_this.scene, 0, 0).setRectangleDropZone(_this.portrait.width, _this.portrait.height);
@@ -395,6 +405,8 @@ var Project;
         Patron.prototype.updateLayout = function () {
             this.requestIconContainer.x = this.portrait.x - ((Patron.iconCellWidth * (this.requestIcons.length - 1)) / 2);
             this.requestIconContainer.y = this.portrait.y + this.portrait.height;
+            this.timeBar.x = this.portrait.x - ((this.portrait.width * this.portrait.scale) / 2);
+            this.timeBar.y = this.portrait.y - ((this.portrait.height * this.portrait.scale) / 2) - 10;
         };
         Patron.prototype.updateRequestView = function () {
             while (this.requestIcons.length)
@@ -413,7 +425,18 @@ var Project;
             });
             this.updateLayout();
         };
+        Patron.prototype.updateTimeBar = function (progress) {
+            this.timeBar.clear();
+            var col = Patron.GREEN;
+            if (progress < 0.5)
+                col = Patron.YELLOW;
+            if (progress < 0.25)
+                col = Patron.RED;
+            this.timeBar.fillStyle(col, 1);
+            this.timeBar.fillRect(0, 0, this.portrait.width * this.portrait.scale * progress, 10);
+        };
         Patron.prototype.generateRequest = function () {
+            this.expired = false;
             this.request = [];
             var resourceTypes = [
                 Project.CARD_TYPES.CIRCLE,
@@ -438,12 +461,20 @@ var Project;
         Patron.prototype.getDropZone = function () {
             return this.dropZone.getBounds();
         };
-        Patron.prototype.update = function () {
+        Patron.prototype.update = function (timestamp, elapsed) {
+            if (this.expired)
+                this.countdownExpired();
+            var clockTime = new Date().getTime();
+            var deltaTime = this.endTime - clockTime;
+            var p = deltaTime / Patron.countdownTime;
+            this.updateTimeBar(p);
+            if (p <= 0) {
+                this.expired = true;
+                this.countdownExpired();
+            }
         };
         Patron.prototype.startCountDown = function () {
-            console.warn('debug: countdown disabled');
-            return;
-            this.countdown = this.scene.time.delayedCall(Patron.countdownTime, this.countdownExpired, null, this);
+            this.endTime = new Date().getTime() + Patron.countdownTime;
         };
         Patron.prototype.countdownExpired = function () {
             this.emit(PATRON_EVENTS.COUNTDOWN_EXPIRED, this, [this]);
@@ -457,6 +488,14 @@ var Project;
                 this.request.splice(idx, 1);
                 this.updateRequestView();
             }
+            var clockTime = new Date().getTime();
+            var deltaTime = this.endTime - clockTime;
+            var p = deltaTime / Patron.countdownTime;
+            console.log('deliver card at p', p);
+            p = p + Patron.rewardProgress;
+            p = Math.min(1, p);
+            this.endTime = clockTime + Patron.countdownTime * p;
+            console.log('reward', p);
             if (this.request.length == 0)
                 this.patronSatisfied();
         };
@@ -466,7 +505,11 @@ var Project;
         Patron.nFrames = 107;
         Patron.iconCellWidth = 50;
         Patron.dropZoneRadius = 128;
-        Patron.countdownTime = 30000;
+        Patron.countdownTime = 90000;
+        Patron.rewardProgress = 0.25;
+        Patron.GREEN = 0x00ff00;
+        Patron.RED = 0xff0000;
+        Patron.YELLOW = 0xffff00;
         return Patron;
     }(Phaser.GameObjects.Container));
     Project.Patron = Patron;
@@ -495,9 +538,9 @@ var Project;
                 x: cellW - (cellW * this.list.length * 0.5)
             });
         };
-        PatronManager.prototype.update = function () {
+        PatronManager.prototype.update = function (timestamp, elapsed) {
             for (var i = this.patrons.length - 1; i >= 0; i--)
-                this.patrons[i].update();
+                this.patrons[i].update(timestamp, elapsed);
         };
         PatronManager.prototype.addPatron = function () {
             var patron = new Project.Patron(this.scene, 0, 0);
@@ -577,7 +620,7 @@ var Project;
         PairsActivityScene.prototype.create = function () {
             this.container = this.add.container(0, 0);
             this.sceneChangeButton = new Phaser.GameObjects.Sprite(this, 0, 0, 'ui', 'scene_up');
-            this.sceneChangeButton.setPosition(this.game.config.width * 0.5, this.sceneChangeButton.height * 0.5);
+            this.sceneChangeButton.setPosition(this.game.config.width - (this.sceneChangeButton.width * 0.5), this.sceneChangeButton.height * 0.5);
             this.sceneChangeButton.setInteractive();
             this.sceneChangeButton.on('pointerup', this.changeActivity, this);
             this.container.add(this.sceneChangeButton);
@@ -587,7 +630,7 @@ var Project;
             this.events.on(Phaser.Scenes.Events.TRANSITION_COMPLETE, this.onTransitionComplete, this);
         };
         PairsActivityScene.prototype.resetActivity = function () {
-            var nCardsW = 10;
+            var nCardsW = 6;
             var nCardsH = 4;
             var groupOffsetX = 0;
             var groupOffsetY = -40;
@@ -754,7 +797,7 @@ var Project;
         ShopActivityScene.prototype.create = function () {
             this.container = this.add.container(0, 0);
             this.sceneChangeButton = new Phaser.GameObjects.Sprite(this, 0, 0, 'ui', 'scene_down');
-            this.sceneChangeButton.setPosition(this.game.config.width * 0.5, this.sceneChangeButton.height * 0.5);
+            this.sceneChangeButton.setPosition(this.game.config.width - (this.sceneChangeButton.width * 0.5), this.sceneChangeButton.height * 0.5);
             this.sceneChangeButton.setInteractive();
             this.sceneChangeButton.on('pointerup', this.changeActivity, this);
             this.container.add(this.sceneChangeButton);
@@ -768,8 +811,8 @@ var Project;
             this.events.on(Phaser.Scenes.Events.TRANSITION_COMPLETE, this.onTransitionComplete, this);
             this.events.on(Phaser.Scenes.Events.TRANSITION_START, this.onTransitionStart, this);
         };
-        ShopActivityScene.prototype.update = function () {
-            this.patronManager.update();
+        ShopActivityScene.prototype.update = function (timestamp, elapsed) {
+            this.patronManager.update(timestamp, elapsed);
         };
         ShopActivityScene.prototype.checkEndGame = function () {
             if (this.patronsExpired >= 3)

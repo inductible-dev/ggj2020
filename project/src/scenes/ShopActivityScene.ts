@@ -22,7 +22,7 @@ namespace Project {
 
             // scene change button
             this.sceneChangeButton = new Phaser.GameObjects.Sprite(this, 0 ,0, 'ui', 'scene_down');
-            this.sceneChangeButton.setPosition( <number>this.game.config.width*0.5, this.sceneChangeButton.height*0.5 ) ;
+            this.sceneChangeButton.setPosition( <number>this.game.config.width-(this.sceneChangeButton.width*0.5), this.sceneChangeButton.height*0.5 ) ;
             this.sceneChangeButton.setInteractive();
             this.sceneChangeButton.on('pointerup',this.changeActivity,this);
             this.container.add(this.sceneChangeButton);
@@ -42,9 +42,9 @@ namespace Project {
 
         }        
 
-        update()
+        update(timestamp,elapsed)
         {
-            this.patronManager.update();
+            this.patronManager.update(timestamp,elapsed);
         }
 
         checkEndGame()

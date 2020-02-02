@@ -27,7 +27,7 @@ namespace Project {
         create()
         {
             this.game.sound.add('music');
-            this.game.sound.play('music',{volume:0.5});
+            var music = this.game.sound.play('music',{volume:0.5,loop:true});
 
             this.game.sound.add('doorbell');
             this.game.sound.add('comparator');

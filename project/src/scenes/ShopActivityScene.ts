@@ -61,7 +61,8 @@ namespace Project {
         gameOver()
         {
             this.patronManager.stop();
-            alert('GAME OVER!');
+            alert('GAME OVER! Not implemented - ran out of time - please REFRESH YOUR BROWSER!');
+            //this.scene.start('TitleScene');
         }
 
         updateTransitionOut(progress)

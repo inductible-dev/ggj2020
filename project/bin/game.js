@@ -549,6 +549,8 @@ var Project;
             });
         };
         PatronManager.prototype.update = function (timestamp, elapsed) {
+            if (!this.patrons)
+                return;
             for (var i = this.patrons.length - 1; i >= 0; i--)
                 this.patrons[i].update(timestamp, elapsed);
         };
@@ -813,7 +815,7 @@ var Project;
         };
         Preloader.prototype.create = function () {
             this.game.sound.add('music');
-            this.game.sound.play('music', { volume: 0.5 });
+            var music = this.game.sound.play('music', { volume: 0.5, loop: true });
             this.game.sound.add('doorbell');
             this.game.sound.add('comparator');
             this.game.sound.add('yeah');
@@ -867,7 +869,7 @@ var Project;
         };
         ShopActivityScene.prototype.gameOver = function () {
             this.patronManager.stop();
-            alert('GAME OVER!');
+            alert('GAME OVER! Not implemented - ran out of time - please REFRESH YOUR BROWSER!');
         };
         ShopActivityScene.prototype.updateTransitionOut = function (progress) {
             var sceneB = this.scene.get('PairsActivityScene');

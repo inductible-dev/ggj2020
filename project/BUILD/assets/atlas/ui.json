@@ -1,0 +1,251 @@
+{
+	"textures": [
+		{
+			"image": "ui.png",
+			"format": "RGBA8888",
+			"size": {
+				"w": 610,
+				"h": 248
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "playbutt",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 316,
+						"h": 176
+					},
+					"spriteSourceSize": {
+						"x": 4,
+						"y": 5,
+						"w": 304,
+						"h": 166
+					},
+					"frame": {
+						"x": 1,
+						"y": 1,
+						"w": 304,
+						"h": 166
+					}
+				},
+				{
+					"filename": "scene_down",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 292,
+						"h": 104
+					},
+					"spriteSourceSize": {
+						"x": 8,
+						"y": 4,
+						"w": 281,
+						"h": 84
+					},
+					"frame": {
+						"x": 307,
+						"y": 1,
+						"w": 281,
+						"h": 84
+					}
+				},
+				{
+					"filename": "scene_up",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 292,
+						"h": 104
+					},
+					"spriteSourceSize": {
+						"x": 3,
+						"y": 16,
+						"w": 281,
+						"h": 84
+					},
+					"frame": {
+						"x": 307,
+						"y": 87,
+						"w": 281,
+						"h": 84
+					}
+				},
+				{
+					"filename": "sqstar",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 75,
+						"h": 74
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 75,
+						"h": 74
+					},
+					"frame": {
+						"x": 1,
+						"y": 169,
+						"w": 75,
+						"h": 74
+					}
+				},
+				{
+					"filename": "triangle",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 75,
+						"h": 74
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 75,
+						"h": 74
+					},
+					"frame": {
+						"x": 78,
+						"y": 169,
+						"w": 75,
+						"h": 74
+					}
+				},
+				{
+					"filename": "circle",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 74,
+						"h": 74
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 74,
+						"h": 74
+					},
+					"frame": {
+						"x": 155,
+						"y": 169,
+						"w": 74,
+						"h": 74
+					}
+				},
+				{
+					"filename": "cog",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 74,
+						"h": 74
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 74,
+						"h": 74
+					},
+					"frame": {
+						"x": 231,
+						"y": 169,
+						"w": 74,
+						"h": 74
+					}
+				},
+				{
+					"filename": "drop",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 74,
+						"h": 74
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 74,
+						"h": 74
+					},
+					"frame": {
+						"x": 307,
+						"y": 173,
+						"w": 74,
+						"h": 74
+					}
+				},
+				{
+					"filename": "segment",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 74,
+						"h": 74
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 74,
+						"h": 74
+					},
+					"frame": {
+						"x": 383,
+						"y": 173,
+						"w": 74,
+						"h": 74
+					}
+				},
+				{
+					"filename": "square",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 74,
+						"h": 74
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 74,
+						"h": 74
+					},
+					"frame": {
+						"x": 459,
+						"y": 173,
+						"w": 74,
+						"h": 74
+					}
+				},
+				{
+					"filename": "trapezoid",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 74,
+						"h": 74
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 74,
+						"h": 74
+					},
+					"frame": {
+						"x": 535,
+						"y": 173,
+						"w": 74,
+						"h": 74
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "https://www.codeandweb.com/texturepacker",
+		"version": "3.0",
+		"smartupdate": "$TexturePacker:SmartUpdate:096a8668268811402d034ed690804c35:9f8244e46adf2017328c497640c6258a:5b04aa198265472a3c5f56958d78e97b$"
+	}
+}
